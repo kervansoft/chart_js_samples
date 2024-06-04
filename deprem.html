@@ -219,7 +219,7 @@
         map.on('zoomend', function() {
         var zoomLevel = map.getZoom();
         if (zoomLevel <= 16) {
-            markerSizeFactor = Math.pow(0.8, 10 - zoomLevel); // Zoom seviyesine göre faktörü hesapla
+            markerSizeFactor = Math.pow(0.7, 10 - zoomLevel); // Zoom seviyesine göre faktörü hesapla
         } else {
             markerSizeFactor = 1; // Maksimum zoom seviyesine ulaşıldığında marker boyutunu sabitle
         }
