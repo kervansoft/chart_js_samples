@@ -25,8 +25,8 @@
         }
         .blink-destroyed {
             position: absolute;
-            width: 1px;
-            height: 1px;
+            width: 2px;
+            height: 2px;
             margin-left: -5px;
             margin-top: -5px;
             border-radius: 50%;
@@ -36,8 +36,8 @@
         }
         .blink-intact {
             position: absolute;
-            width: 1px;
-            height: 1px;
+            width: 2px;
+            height: 2px;
             margin-left: -5px;
             margin-top: -5px;
             border-radius: 50%;
@@ -68,7 +68,7 @@
                 'lng': 28.1784, 
                 'type': 'epicenter', 
                 'info': 'Deprem Merkezi<br>Şiddet: 7.0<br>Tarih: 01.06.2024<br>Saat: 14:30<br>Derinlik: 10km',
-                'magnitude': 3.0
+                'magnitude': 7.0
             },
             // Yıkılan binalar
             {
@@ -131,7 +131,7 @@
         ];
 
         // Marker boyutlarını belirli bir oranda küçültmek için faktör
-        var markerSizeFactor = 2;
+        var markerSizeFactor = 1;
 
         // Haritayı başlat
         var map = L.map('map', {
@@ -158,79 +158,79 @@
             if (coord.type === 'epicenter') {
                 var color;
                 if (coord.magnitude < 4)
-{
-    color = 'green';
-} else if (coord.magnitude < 5) {
-    color = 'blue';
-} else if (coord.magnitude < 6) {
-    color = 'orange';
-} else if (coord.magnitude < 7) {
-    color = 'red';
-} else {
-    color = 'purple';
-}
-
-// Deprem dalgası animasyonu
-function createWave(lat, lng, delay) {
-    var waveLayers = [];
-    for (var i = 1; i <= 5; i++) {
-        (function(i) {
-            setTimeout(function() {
-                var wave = L.circleMarker([lat, lng], {
-                    color: color,
-                    weight: 0,
-                    radius: i * 5,
-                    opacity: 0.3
-                }).addTo(map);
-                waveLayers.push(wave);
-                setTimeout(function() {
-                    wave.remove();
-                    if (i === 5) {
-                        createWave(lat, lng, 0); // Dalga oluşturma işlemini yeniden başlat
+                    {
+                        color = 'green';
+                    } else if (coord.magnitude < 5) {
+                        color = 'blue';
+                    } else if (coord.magnitude < 6) {
+                        color = 'orange';
+                    } else if (coord.magnitude < 7) {
+                        color = 'red';
+                    } else {
+                        color = 'purple';
                     }
-                }, 1000); // Gerekirse süreyi ayarlayın
-            }, delay + (i - 1) * 100);
-        })(i);
-    }
-}
 
-// İç içe 5 dalga oluştur
-createWave(coord.lat, coord.lng, 10);
+        // Deprem dalgası animasyonu
+        function createWave(lat, lng, delay) {
+            var waveLayers = [];
+            for (var i = 1; i <= 5; i++) {
+                (function(i) {
+                    setTimeout(function() {
+                        var wave = L.circleMarker([lat, lng], {
+                            color: color,
+                            weight: 0,
+                            radius: i * 5,
+                            opacity: 0.3
+                        }).addTo(map);
+                        waveLayers.push(wave);
+                        setTimeout(function() {
+                            wave.remove();
+                            if (i === 5) {
+                                createWave(lat, lng, 0); // Dalga oluşturma işlemini yeniden başlat
+                            }
+                        }, 1000); // Gerekirse süreyi ayarlayın
+                    }, delay + (i - 1) * 100);
+                })(i);
+            }
+        }
 
-} else if (coord.type === 'destroyed') {
-    markerOptions.icon = L.divIcon({
-        className: 'blink-destroyed',
-        iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+        // İç içe 5 dalga oluştur
+        createWave(coord.lat, coord.lng, 10);
+
+        } else if (coord.type === 'destroyed') {
+            markerOptions.icon = L.divIcon({
+                className: 'blink-destroyed',
+                iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+            });
+        } else if (coord.type === 'intact') {
+            markerOptions.icon = L.divIcon({
+                className: 'blink-intact',
+                iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+            });
+        }
+
+        var marker = L.marker([coord.lat, coord.lng], markerOptions).addTo(map);
+        marker.bindTooltip(coord.info, { permanent: false, direction: 'top' });
+
+        markers.push(marker);
+        });
+
+        // Zoom değiştikçe marker boyutlarını güncelle
+        map.on('zoomend', function() {
+        var zoomLevel = map.getZoom();
+        if (zoomLevel <= 16) {
+            markerSizeFactor = Math.pow(0.8, 10 - zoomLevel); // Zoom seviyesine göre faktörü hesapla
+        } else {
+            markerSizeFactor = 1; // Maksimum zoom seviyesine ulaşıldığında marker boyutunu sabitle
+        }
+
+        // Tüm markerları güncelle
+        markers.forEach(function(marker) {
+            marker.setIcon(L.divIcon({
+                className: marker.options.icon.options.className,
+                iconSize: [8 * markerSizeFactor, 8 * markerSizeFactor] // Yeni boyutları uygula
+            }));
     });
-} else if (coord.type === 'intact') {
-    markerOptions.icon = L.divIcon({
-        className: 'blink-intact',
-        iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
-    });
-}
-
-var marker = L.marker([coord.lat, coord.lng], markerOptions).addTo(map);
-marker.bindTooltip(coord.info, { permanent: false, direction: 'top' });
-
-markers.push(marker);
-});
-
-// Zoom değiştikçe marker boyutlarını güncelle
-map.on('zoomend', function() {
-var zoomLevel = map.getZoom();
-if (zoomLevel <= 16) {
-    markerSizeFactor = Math.pow(0.8, 10 - zoomLevel); // Zoom seviyesine göre faktörü hesapla
-} else {
-    markerSizeFactor = 1; // Maksimum zoom seviyesine ulaşıldığında marker boyutunu sabitle
-}
-
-// Tüm markerları güncelle
-markers.forEach(function(marker) {
-    marker.setIcon(L.divIcon({
-        className: marker.options.icon.options.className,
-        iconSize: [8 * markerSizeFactor, 8 * markerSizeFactor] // Yeni boyutları uygula
-    }));
-});
 });
 </script>
 </body>
