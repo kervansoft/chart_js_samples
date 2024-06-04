@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Haritası - Deprem Verileri</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.1;
+            }
+        }
+        .pulse-epicenter {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        .blink-destroyed {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin-left: -5px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: red;
+            animation: blink 1s infinite;
+            transform: translate(50%, 50%);
+        }
+        .blink-intact {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin-left: -5px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: green;
+            animation: 1s infinite;
+            transform: translate(50%, 50%);
+        }
+        .wave-circle {
+            border-radius: 50%;
+            border: 1px solid white;
+            position: absolute;
+            transform: translate(0%, 0%);
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        // Sahte veri
+        var data = [
+            {
+                'lat': 41.1082, 
+                'lng': 28.1784, 
+                'type': 'epicenter', 
+                'info': 'Deprem Merkezi<br>Şiddet: 7.0<br>Tarih: 01.06.2024<br>Saat: 14:30<br>Derinlik: 10km',
+                'magnitude': 3.0
+            },
+            // Yıkılan binalar
+            {
+                'lat': 41.11, 
+                'lng': 28.4785, 
+                'type': 'destroyed', 
+                'info': 'Yıkılan Bina<br>Adres: Örnek Mah. 1<br>Kat: 5<br>Hasar: %100<br>Durum: Acil',
+                'magnitude': 0
+            },
+            {
+                'lat': 41.2081, 
+                'lng': 28.3183, 
+                'type': 'destroyed', 
+                'info': 'Yıkılan Bina<br>Adres: Örnek Mah. 2<br>Kat: 4<br>Hasar: %100<br>Durum: Acil',
+                'magnitude': 0
+            },
+            {
+                'lat': 41.1184, 
+                'lng': 28.2786, 
+                'type': 'destroyed', 
+                'info': 'Yıkılan Bina<br>Adres: Örnek Mah. 3<br>Kat: 6<br>Hasar: %100<br>Durum: Acil',
+                'magnitude': 0
+            },
+            {
+                'lat': 41.2080, 
+                'lng': 28.3710, 
+                'type': 'destroyed', 
+                'info': 'Yıkılan Bina<br>Adres: Örnek Mah. 4<br>Kat: 3<br>Hasar: %100<br>Durum: Acil',
+                'magnitude': 0
+            },
+            {
+                'lat': 41.2285, 
+                'lng': 28.2187, 
+                'type': 'destroyed', 
+                'info': 'Yıkılan Bina<br>Adres: Örnek Mah. 5<br>Kat: 7<br>Hasar: %100<br>Durum: Acil',
+                'magnitude': 0
+            },
+            // Ayakta kalan binalar
+            {
+                'lat': 41.1686, 
+                'lng': 28.1188, 
+                'type': 'intact', 
+                'info': 'Ayakta Kalan Bina<br>Adres: Örnek Mah. 6<br>Kat: 10<br>Hasar: %0<br>Durum: Güvenli',
+                'magnitude': 0
+            },
+            {
+                'lat': 41.3187, 
+                'lng': 28.0089, 
+                'type': 'intact', 
+                'info': 'Ayakta Kalan Bina<br>Adres: Örnek Mah. 7<br>Kat: 8<br>Hasar: %0<br>Durum: Güvenli',
+                'magnitude': 0
+            },
+            {
+                'lat': 41.388, 
+                'lng': 28.0290, 
+                'type': 'intact', 
+                'info': 'Ayakta Kalan Bina<br>Adres: Örnek Mah. 8<br>Kat: 9<br>Hasar: %0<br>Durum: Güvenli',
+                'magnitude': 0
+            }
+        ];
+
+        // Marker boyutlarını belirli bir oranda küçültmek için faktör
+        var markerSizeFactor = 2;
+
+        // Haritayı başlat
+        var map = L.map('map', {
+            minZoom: 6, // Minimum zoom seviyesi
+            maxZoom: 16 // Maksimum zoom seviyesi
+        }).setView([38.5082, 35.4784], 6); // İstanbul için örnek koordinat
+
+        // OpenStreetMap katmanını ekle
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var markers = [];
+
+        // Markerları ekle
+        data.forEach(function(coord) {
+            var markerOptions = {
+                icon: L.divIcon({
+                    className: '',
+                    iconSize: [1, 1]
+                })
+            };
+
+            if (coord.type === 'epicenter') {
+                var color;
+                if (coord.magnitude < 4)
+{
+    color = 'green';
+} else if (coord.magnitude < 5) {
+    color = 'blue';
+} else if (coord.magnitude < 6) {
+    color = 'orange';
+} else if (coord.magnitude < 7) {
+    color = 'red';
+} else {
+    color = 'purple';
+}
+
+// Deprem dalgası animasyonu
+function createWave(lat, lng, delay) {
+    var waveLayers = [];
+    for (var i = 1; i <= 5; i++) {
+        (function(i) {
+            setTimeout(function() {
+                var wave = L.circleMarker([lat, lng], {
+                    color: color,
+                    weight: 0,
+                    radius: i * 5,
+                    opacity: 0.3
+                }).addTo(map);
+                waveLayers.push(wave);
+                setTimeout(function() {
+                    wave.remove();
+                    if (i === 5) {
+                        createWave(lat, lng, 0); // Dalga oluşturma işlemini yeniden başlat
+                    }
+                }, 1000); // Gerekirse süreyi ayarlayın
+            }, delay + (i - 1) * 100);
+        })(i);
+    }
+}
+
+// İç içe 5 dalga oluştur
+createWave(coord.lat, coord.lng, 10);
+
+} else if (coord.type === 'destroyed') {
+    markerOptions.icon = L.divIcon({
+        className: 'blink-destroyed',
+        iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+    });
+} else if (coord.type === 'intact') {
+    markerOptions.icon = L.divIcon({
+        className: 'blink-intact',
+        iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+    });
+}
+
+var marker = L.marker([coord.lat, coord.lng], markerOptions).addTo(map);
+marker.bindTooltip(coord.info, { permanent: false, direction: 'top' });
+
+markers.push(marker);
+});
+
+// Zoom değiştikçe marker boyutlarını güncelle
+map.on('zoomend', function() {
+var zoomLevel = map.getZoom();
+if (zoomLevel <= 16) {
+    markerSizeFactor = Math.pow(0.8, 10 - zoomLevel); // Zoom seviyesine göre faktörü hesapla
+} else {
+    markerSizeFactor = 1; // Maksimum zoom seviyesine ulaşıldığında marker boyutunu sabitle
+}
+
+// Tüm markerları güncelle
+markers.forEach(function(marker) {
+    marker.setIcon(L.divIcon({
+        className: marker.options.icon.options.className,
+        iconSize: [8 * markerSizeFactor, 8 * markerSizeFactor] // Yeni boyutları uygula
+    }));
+});
+});
+</script>
+</body>
+</html>
