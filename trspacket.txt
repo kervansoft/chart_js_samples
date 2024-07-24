@@ -1,0 +1,21 @@
+TRS packet Delay Sample Code
+
+https://www.blackbox.ai/share/1a7a17de-0e68-45e8-8ff5-7c9ef6161703
+
+import pandas as pd
+
+# Csv dosyasını okuma
+df = pd.read_csv("input.csv")
+
+# Gerekli sütunları seçme
+df = df[["SrcProbeName", "DestName", "DelayAverage", "JitterAverage", "PacketLossAverage"]]
+
+# DestName'e göre gruplandırma ve ortalama değerleri hesaplama
+df_grouped = df.groupby(["SrcProbeName", "DestName"])[["DelayAverage", "JitterAverage", "PacketLossAverage"]].mean().reset_index()
+
+# Sonuçları output.csv dosyasına yazma
+df_grouped.to_csv("output.csv", index=False)
+
+
+
+https://www.blackbox.ai/publish/8cq5mJ_NVgydGPDxH_RWu
