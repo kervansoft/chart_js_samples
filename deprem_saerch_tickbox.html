@@ -21,8 +21,8 @@
         }
         .blink-destroyed {
             position: absolute;
-            width: 2px;
-            height: 2px;
+            width: 1px;
+            height: 1px;
             margin-left: -5px;
             margin-top: -5px;
             border-radius: 50%;
@@ -32,8 +32,8 @@
         }
         .blink-intact {
             position: absolute;
-            width: 2px;
-            height: 2px;
+            width: 1px;
+            height: 1px;
             margin-left: -5px;
             margin-top: -5px;
             border-radius: 50%;
@@ -105,7 +105,7 @@
 
         label {
           display: block;
-          margin-bottom: 2px;
+          margin-bottom: 3px;
         }
 
         label input[type="checkbox"] {
@@ -190,15 +190,15 @@
                 color: color,
                 weight: 0,
                 fillColor: color,
-                fillOpacity: 0.3,
+                fillOpacity: 0.5,
                 radius: currentRadius
             }).addTo(map);
 
             setInterval(() => {
                 const zoomLevel = map.getZoom();
                 const radiusFactor = 1 / Math.pow(2, zoomLevel - 6);
-                currentRadius += 1000 * radiusFactor;
-                if (currentRadius > 30000 * radiusFactor) {
+                currentRadius += 4000 * radiusFactor;
+                if (currentRadius > 40000 * radiusFactor) {
                     currentRadius = 0;
                 }
                 expandingCircle.setRadius(currentRadius);
@@ -262,12 +262,12 @@
         // Zoom değiştikçe marker boyutlarını güncelle
         map.on('zoomend', () => {
             const zoomLevel = map.getZoom();
-            markerSizeFactor = zoomLevel <= 16 ? Math.pow(0.7, 10 - zoomLevel) : 1;
+            markerSizeFactor = zoomLevel <= 16 ? Math.pow(0.9, 10 - zoomLevel) : 1;
 
             markers.forEach(marker => {
                 marker.setIcon(L.divIcon({
                     className: marker.options.icon.options.className,
-                    iconSize: [8 * markerSizeFactor, 8 * markerSizeFactor]
+                    iconSize: [4 * markerSizeFactor, 4 * markerSizeFactor]
                 }));
             });
 
