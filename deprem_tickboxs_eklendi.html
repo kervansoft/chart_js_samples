@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaflet Haritası - Deprem Verileri</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        @keyframes blink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.1;
+            }
+        }
+        .pulse-epicenter {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            margin-left: -10px;
+            margin-top: -10px;
+            border-radius: 50%;
+            background: rgba(255, 0, 0, 0.1);
+        }
+        .blink-destroyed {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            margin-left: -5px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: red;
+            animation: blink 1s infinite;
+            transform: translate(50%, 50%);
+        }
+        .blink-intact {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            margin-left: -5px;
+            margin-top: -5px;
+            border-radius: 50%;
+            background: green;
+            animation: 1s infinite;
+            transform: translate(50%, 50%);
+        }
+        .wave-circle {
+            border-radius: 50%;
+            border: 1px solid white;
+            position: absolute;
+            transform: translate(0%, 0%);
+        }
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 5px;
+            z-index: 1000;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            font-size: 10px; /* Yazı boyutunu küçültmek için */
+        }
+        .controls label {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="controls">
+        <label><input type="checkbox" id="showIntact" checked>Fixed NE's</label>
+        <label><input type="checkbox" id="showDestroyed" checked>Disconnected NE's</label>
+    </div>
+
+    <script>
+        // Sahte veri
+        var data = [
+            {
+                'lat': 41.1082, 
+                'lng': 28.1784, 
+                'type': 'epicenter', 
+                'info': 'Deprem Merkezi<br>Şiddet: 7.0<br>Tarih: 01.06.2024<br>Saat: 14:30<br>Derinlik: 10km',
+                'magnitude': 7.0
+            },
+            // Yıkılan binalar
+            {
+                'lat': 41.11, 
+                'lng': 28.4785, 
+                'type': 'destroyed', 
+                'info': 'Yıkılan Bina<br>Adres: Örnek Mah. 1<br>Kat: 5<br>Hasar: %100<br>Durum: Acil',
+                'magnitude': 0
+            },
+            // Ayakta kalan binalar
+            {
+                'lat': 41.388, 
+                'lng': 28.0290, 
+                'type': 'intact', 
+                'info': 'Ayakta Kalan Bina<br>Adres: Örnek Mah. 8<br>Kat: 9<br>Hasar: %0<br>Durum: Güvenli',
+                'magnitude': 0
+            }
+        ];
+
+        // Marker boyutlarını belirli bir oranda küçültmek için faktör
+        var markerSizeFactor = 1;
+
+        // Haritayı başlat
+        var map = L.map('map', {
+            minZoom: 6, // Minimum zoom seviyesi
+            maxZoom: 16 // Maksimum zoom seviyesi
+        }).setView([38.5082, 35.4784], 6); // İstanbul için örnek koordinat
+
+        // OpenStreetMap katmanını ekle
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var markers = [];
+        var waves = [];
+
+        // Markerları ekle
+        data.forEach(function(coord) {
+            var markerOptions = {
+                icon: L.divIcon({
+                    className: '',
+                    iconSize: [1, 1]
+                })
+            };
+
+            if (coord.type === 'epicenter') {
+                var color;
+                if (coord.magnitude < 4) {
+                    color = 'green';
+                } else if (coord.magnitude < 5) {
+                    color = 'blue';
+                } else if (coord.magnitude < 6) {
+                    color = 'orange';
+                } else if (coord.magnitude < 7) {
+                    color = 'red';
+                } else {
+                    color = 'purple';
+                }
+
+                // Deprem dalgası animasyonu
+                function createWave(lat, lng) {
+                    var currentRadius = 0;
+                    var expandingCircle = L.circle([lat, lng], {
+                        color: color,
+                        weight: 0,
+                        fillColor: color,
+                        fillOpacity: 0.3,
+                        radius: currentRadius
+                    }).addTo(map);
+
+                    setInterval(function() {
+                        var zoomLevel = map.getZoom();
+                        var radiusFactor = 1 / Math.pow(2, zoomLevel - 6); // Zoom seviyesine göre faktör
+                        currentRadius += 1000 * radiusFactor; // Yarıçapı artır
+                        if (currentRadius > 30000 * radiusFactor) { // Belirli bir boyuta ulaştığında sıfırla
+                            currentRadius = 0;
+                        }
+                        expandingCircle.setRadius(currentRadius);
+                    }, 100);
+
+                    waves.push(expandingCircle);
+                }
+
+                createWave(coord.lat, coord.lng);
+
+            } else if (coord.type === 'destroyed') {
+                markerOptions.icon = L.divIcon({
+                    className: 'blink-destroyed',
+                    iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+                });
+            } else if (coord.type === 'intact') {
+                markerOptions.icon = L.divIcon({
+                    className: 'blink-intact',
+                    iconSize: [2 * markerSizeFactor, 2 * markerSizeFactor] // Marker boyutunu belirli bir oranda küçült
+                });
+            }
+
+            var marker = L.marker([coord.lat, coord.lng], markerOptions).addTo(map);
+            marker.bindTooltip(coord.info, { permanent: false, direction: 'top' });
+
+            markers.push(marker);
+        });
+
+        // Zoom değiştikçe marker boyutlarını güncelle
+        map.on('zoomend', function() {
+            var zoomLevel = map.getZoom();
+            if (zoomLevel <= 16) {
+                markerSizeFactor = Math.pow(0.7, 10 - zoomLevel); // Zoom seviyesine göre faktörü hesapla
+            } else {
+                markerSizeFactor = 1; // Maksimum zoom seviyesine ulaşıldığında marker boyutunu sabitle
+            }
+
+            // Tüm markerları güncelle
+            markers.forEach(function(marker) {
+                marker.setIcon(L.divIcon({
+                    className: marker.options.icon.options.className,
+                    iconSize: [8 * markerSizeFactor, 8 * markerSizeFactor] // Yeni boyutları uygula
+                }));
+            });
+
+            // Tüm dalgaları güncelle
+            waves.forEach(function(wave) {
+                var currentRadius = wave.getRadius();
+                var radiusFactor = 1 / Math.pow(2, zoomLevel - 6);
+                wave.setRadius(currentRadius * radiusFactor);
+            });
+        });
+
+        // Tick butonlar ile markerları açıp kapatma
+        document.getElementById('showIntact').addEventListener('change', function(e) {
+            markers.forEach(function(marker) {
+                if (marker.options.icon.options.className === 'blink-intact') {
+                    if (e.target.checked) {
+                        marker.addTo(map);
+                    } else {
+                        map.removeLayer(marker);
+                    }
+                }
+            });
+        });
+
+        document.getElementById('showDestroyed').addEventListener('change', function(e) {
+            markers.forEach(function(marker) {
+                if (marker.options.icon.options.className === 'blink-destroyed') {
+                    if (e.target.checked) {
+                        marker.addTo(map);
+                    } else {
+                        map.removeLayer(marker);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
