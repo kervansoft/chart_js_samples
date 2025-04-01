@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RRC Sayıcı</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+/* Sadece ilgili CSS kurallarını gösteriyorum, diğerleri aynı kalacak */
+    <style>
+        :root {
+            --primary-color: #3949ab;
+            --hover-color: #303f9f;
+            --bg-color: #f5f7ff;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --shadow: 0 1px 3px rgba(57, 73, 171, 0.06);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            font-size: 14px;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        .counters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+            gap: 0;
+            margin-bottom: 25px;
+            border: 1px solid #e8eaf6;
+            overflow: hidden;
+        }
+
+        .counter-card {
+            background-color: var(--card-bg);
+            border-radius: 0;
+            border-bottom: 1px solid #e8eaf6;
+            border-right: 1px solid #e8eaf6;
+            overflow: hidden;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: stretch;
+            position: relative;
+            min-height: 45px; /* <<<< YÜKSEKLİK AZALTILDI (Önceki 55px idi) */
+        }
+
+        .counter-card:hover {
+            transform: none;
+            box-shadow: none;
+            background-color: #f1f3f9;
+            z-index: 10;
+        }
+
+        .counter-icon {
+            background-color: var(--primary-color);
+            color: white;
+            width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em; /* İkon boyutu yükseklikle orantılı */
+            flex-shrink: 0;
+        }
+
+        .counter-content {
+            padding: 4px 8px; /* <<<< Padding biraz daha ayarlandı */
+            flex-grow: 1;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .counter-number {
+            font-size: 1.2em; /* <<<< Sayı boyutu belki biraz daha küçültülebilir */
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            line-height: 1; /* Line height 1 yapıldı */
+            white-space: nowrap;
+        }
+
+        .counter-label {
+            margin: 0; /* <<<< Üst margin sıfırlandı */
+            color: #666;
+            font-size: 0.58em; /* <<<< Etiket boyutu belki biraz daha küçültülebilir */
+            line-height: 1; /* Line height 1 yapıldı */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        footer {
+            padding: 10px;
+            text-align: center;
+            color: #777;
+            font-size: 0.75em;
+            margin-top: 15px;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.5em; }
+            .counters-grid {
+                grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+            }
+            /* .counter-number { font-size: 1.15em; } */ /* İsteğe bağlı küçültme */
+            /* .counter-label { font-size: 0.55em; } */ /* İsteğe bağlı küçültme */
+            .counter-icon { width: 38px; font-size: 1.0em; }
+            .counter-content { padding: 3px 7px; }
+            .counter-card { min-height: 42px; } /* <<<< Responsive yükseklik ayarlandı */
+        }
+
+        @media (max-width: 480px) {
+            body { font-size: 13px; }
+            h1 { font-size: 1.4em; }
+            .header { padding: 12px 0; }
+            .counters-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .counter-icon {
+                width: 35px;
+                font-size: 0.9em;
+            }
+            .counter-content {
+                padding: 2px 5px; /* <<<< Minimal padding */
+            }
+            .counter-number {
+                font-size: 1.1em; /* <<<< Sayı boyutu küçültüldü */
+            }
+            .counter-label {
+                font-size: 0.52em; /* <<<< Etiket boyutu küçültüldü */
+            }
+            .counter-card { min-height: 40px; } /* <<<< En küçük ekran için yükseklik */
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>RRC Sayıcı</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="counters-grid">
+            <!-- RRC Counters (HTML structure remains the same) -->
+            <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-signal"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="moSignalRRC">0</p>
+                    <p class="counter-label">MO-Signal RRC Number</p>
+                </div>
+            </div>
+            <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-database"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="moDataRRC">0</p>
+                    <p class="counter-label">MO-Data RRC Number</p>
+                </div>
+            </div>
+            <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-user-check"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="mtAccessRRC">0</p>
+                    <p class="counter-label">MT-Access RRC Number</p>
+                </div>
+            </div>
+            <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-ellipsis-h"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="otherRRC">0</p>
+                    <p class="counter-label">Other RRC Number</p>
+                </div>
+            </div>
+            <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-th-large"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="totalRRC">0</p>
+                    <p class="counter-label">Total RRC Number</p>
+                </div>
+            </div>
+
+            <!-- UE Counters (HTML structure remains the same) -->
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="vnrUE">0</p>
+                    <p class="counter-label">VoNR UE Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-signal"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="caUE">0</p>
+                    <p class="counter-label">CA UE Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-network-wired"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="endcUE">0</p>
+                    <p class="counter-label">EN-DC UE Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-exchange-alt"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="ulDlDecouplingUE">0</p>
+                    <p class="counter-label">UL/DL Decoupling UE</p> <!-- Shortened label -->
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-bolt"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="superUplinkUE">0</p>
+                    <p class="counter-label">Super Uplink UE</p> <!-- Shortened label -->
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-layer-group"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="drbNumber">0</p>
+                    <p class="counter-label">DRB Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-vr-cardboard"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="cloudVrUE">0</p>
+                    <p class="counter-label">Cloud VR UE Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-video"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="ulLiveVideo">0</p>
+                    <p class="counter-label">UL Live Video Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-user-secret"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="fwaPrivateLineUE">0</p>
+                    <p class="counter-label">FWA Private Line UE</p> <!-- Shortened label -->
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-gamepad"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="cellCloudGamingUE">0</p>
+                    <p class="counter-label">Cell Cloud Gaming UE</p> <!-- Shortened label -->
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-signal"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="nrDcUE">0</p>
+                    <p class="counter-label">NR-DC UE Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="redCapUE">0</p>
+                    <p class="counter-label">RedCap UE Number</p>
+                </div>
+            </div>
+             <div class="counter-card">
+                <div class="counter-icon"><i class="fas fa-phone"></i></div>
+                <div class="counter-content">
+                    <p class="counter-number" id="cellCloudPhoneUE">0</p>
+                    <p class="counter-label">Cell Cloud Phone UE</p> <!-- Shortened label -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <!-- Footer content -->
+    </footer>
+
+    <script>
+        // Same JavaScript code as before
+        const values = {
+            moSignalRRC: 150, moDataRRC: 200, mtAccessRRC: 100, otherRRC: 50, totalRRC: 600,
+            vnrUE: 75, caUE: 80, endcUE: 90, ulDlDecouplingUE: 60, superUplinkUE: 45,
+            drbNumber: 120, cloudVrUE: 30, ulLiveVideo: 25, fwaPrivateLineUE: 15, fwaB2hUE: 20,
+            cellCloudGamingUE: 10, nrDcUE: 5, redCapUE: 8, cellCloudPhoneUE: 12
+        };
+
+        function animateCounter(elementId, finalValue) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            let currentValue = 0;
+            const duration = 1500;
+            const steps = 50;
+            const increment = finalValue / steps;
+            const intervalTime = duration / steps;
+            const formatNumber = (num) => Math.ceil(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+             element.textContent = '0'; // Set initial text
+
+            const counter = setInterval(() => {
+                currentValue += increment;
+                if (currentValue >= finalValue) {
+                    currentValue = finalValue;
+                    clearInterval(counter);
+                }
+                 // Use Math.ceil to avoid showing decimals during animation
+                element.textContent = Math.ceil(currentValue);
+                // element.textContent = formatNumber(currentValue); // Optional: use formatting
+            }, intervalTime);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                for (const [id, value] of Object.entries(values)) {
+                    animateCounter(id, value);
+                }
+            }, 300);
+        });
+    </script>
+</body>
+</html>
