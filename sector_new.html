@@ -1,114 +1,84 @@
- <!DOCTYPE html>
-<html>
-<head>
-    <title>Stacked Bar Chart</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <canvas id="myChart"></canvas>
+var chartInstanceSector2; // Grafik örneği için değişken
 
-    <script>
-        // Verilerinizi burada tanımlayın
-        var data = [
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 11, TotalUsers: 31 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 12, TotalUsers: 6 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 13, TotalUsers: 22 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 31, TotalUsers: 38 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 32, TotalUsers: 210 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 33, TotalUsers: 28 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 71, TotalUsers: 25 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 72, TotalUsers: 40 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00156_NEVIZADE", CellName: 73, TotalUsers: 15 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00326_DILSON_OTEL", CellName: 41, TotalUsers: 17 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00326_DILSON_OTEL", CellName: 42, TotalUsers: 20 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00326_DILSON_OTEL", CellName: 43, TotalUsers: 21 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00326_DILSON_OTEL", CellName: 44, TotalUsers: 0 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00324_DILSON_OTEL", CellName: 45, TotalUsers: 26 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00324_DILSON_OTEL", CellName: 46, TotalUsers: 200 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00324_DILSON_OTEL", CellName: 47, TotalUsers: 40 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 48, TotalUsers: 20 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 49, TotalUsers: 20 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 50, TotalUsers: 20 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 51, TotalUsers: 20 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 52, TotalUsers: 2 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 53, TotalUsers: 10 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00329_DILSON_OTEL", CellName: 54, TotalUsers: 35 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00326_DILSON_OTEL", CellName: 55, TotalUsers: 9 },
-            { DateTime: "4.06.2023 01:53", CabName: "SR34_00326_DILSON_OTEL", CellName: 56, TotalUsers: 29 }
-        ];
+var colorPalette = [
+    "#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9", "#C5CAE9", "#BBDEFB", "#B3E5FC", "#B2EBF2", "#B2DFDB"
+];
 
-        // Önceden tanımlanmış renk paleti
-        var colorPalette = [
-        "#FFCDD2", "#F8BBD0", "#E1BEE7", "#D1C4E9", "#C5CAE9", "#BBDEFB", "#B3E5FC", "#B2EBF2", "#B2DFDB"
-        ];
+function createChartSector2(data) {
+    // Veri hazırlığı
+    var cabNames = Object.keys(data); // CabName'leri al
+    var sectorNames = [...new Set(Object.values(data).flatMap(sector => Object.keys(sector)))]; // Tüm sektör isimlerini al
 
+    var datasets = sectorNames.map((sector, index) => {
+        var totalUsersData = cabNames.map(cabName => data[cabName][sector] || 0); // Sektör bazında kullanıcı sayıları
+        var colorIndex = index % colorPalette.length;
 
+        return {
+            label: sector,
+            data: totalUsersData,
+            backgroundColor: colorPalette[colorIndex]
+        };
+    });
 
+    // Grafik varsa önce yok et
+    if (chartInstanceSector2) {
+        chartInstanceSector2.destroy();
+    }
 
-
-
-        // Yığılmış sütun grafiği için veri hazırlığı
-        var cabNames = [...new Set(data.map(item => item.CabName))];
-        var cellNames = [...new Set(data.map(item => item.CellName))];
-
-        var datasets = [];
-        cellNames.forEach(cellName => {
-            var totalUsersData = [];
-            cabNames.forEach(cabName => {
-                var filteredData = data.filter(item => item.CellName === cellName && item.CabName === cabName);
-                var totalUsers = filteredData.length > 0 ? filteredData.reduce((sum, item) => sum + item.TotalUsers, 0) : 0;
-                totalUsersData.push(totalUsers);
-            });
-
-            datasets.push({
-                label: cellName,
-                data: totalUsersData,
-                backgroundColor: ""
-            });
-        });
-
-        // Grafik oluşturma
-        var ctx = document.getElementById("myChart").getContext("2d");
-        new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: cabNames.map(String),
-                datasets: datasets.map(function(dataset, index) {
-                    // Renkleri sırayla seçme
-                    var colorIndex = index % colorPalette.length;
-                    dataset.backgroundColor = colorPalette[colorIndex];
-                    return dataset;
-                })
+    // Grafik oluşturma
+    var ctxSector2 = document.getElementById("myChartSector").getContext("2d");
+    chartInstanceSector2 = new Chart(ctxSector2, {
+        type: "bar",
+        data: {
+            labels: cabNames,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: "top"
+                },
+                title: {
+                    display: false,
+                    // text: "Chart Title"
+                }
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: "top"
-                    },
+            scales: {
+                x: {
+                    stacked: true,
                     title: {
-                        display: true,
-                        text: "mnute"
+                        display: false,
+                        // text: "CabName"
                     }
                 },
-                scales: {
-                    x: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: "CabName"
-                        }
-                    },
-                    y: {
-                        stacked: true,
-                        title: {
-                            display: true,
-                            text: "TotalUsers"
-                        }
+                y: {
+                    stacked: true,
+                    title: {
+                        display: false,
+                        // text: "TotalUsers"
                     }
                 }
             }
-        });
-    </script>
-</body>
-</html>
+        }
+    });
+}
+
+function updateChartSector2() {
+    $.ajax({
+        type: "GET",
+        url: "/eventgrafiksectorcell/" + event_id,
+        data: {
+            id: event_id,
+            _token: csrf
+        },
+        success: function(response) {
+            createChartSector2(response); // Grafik oluşturucuya yanıtı ilet
+        }
+    });
+}
+
+$(document).ready(function() {
+    updateChartSector2(); // Sayfa yüklendiğinde grafik güncellemesi yap
+    setInterval(updateChartSector2, setIntervalMinute); // Belirli aralıklarla grafik güncelle
+});
