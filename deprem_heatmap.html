@@ -92,7 +92,7 @@
 
     /* Arama Sonuçları Tablosu */
     #searchResults {
-      display: none; position: absolute; bottom: 10px; right: 10px; z-index: 1001;
+      display: none; position: absolute; bottom: 25px; right: 10px; z-index: 1001;
       background: rgba(255,255,255,0.98); border-radius: 8px; 
       box-shadow: 0 6px 20px rgba(0,0,0,0.2); max-height: 400px; width: 450px;
       overflow: hidden; font-family: "Segoe UI", Roboto, Arial;
@@ -154,7 +154,7 @@
 
     /* Detay Panel */
     #detailPanel {
-      display: none; position: absolute; bottom: 10px; right: 10px; z-index: 1001;
+      display: none; position: absolute; bottom: 25px; right: 10px; z-index: 1001;
       background: rgba(255,255,255,0.98); border-radius: 8px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.2); width: 420px;
       font-family: "Segoe UI", Roboto, Arial; overflow: hidden;
@@ -210,7 +210,7 @@
       </label>
       <label>
         <input type="radio" name="mapLayer" value="esri">
-        Uydu Görüntüsü (ESRI)
+        Uydu Görüntüsü
       </label>
     </div>
   </div>
@@ -338,13 +338,7 @@
       {cab_name:"GL34_IST_047",enabled_date:"2023-11-06 13:50:50",Lat_Site:40.9301,Lon_Site:29.0223},
       {cab_name:"GL34_IST_048",enabled_date:null,Lat_Site:40.9167,Lon_Site:28.9989},
       {cab_name:"GL34_IST_049",enabled_date:"2023-11-06 14:00:50",Lat_Site:40.9389,Lon_Site:29.0367},
-      {cab_name:"GL34_IST_050",enabled_date:"2023-11-06 14:05:50",Lat_Site:40.9056,Lon_Site:29.0034},
-      ...Array.from({length:250}, (_, i) => ({
-        cab_name: `GL34_IST_${String(i+51).padStart(3,'0')}`,
-        enabled_date: Math.random() > 0.3 ? `2023-${String(Math.floor(Math.random()*12)+1).padStart(2,'0')}-${String(Math.floor(Math.random()*28)+1).padStart(2,'0')} ${String(Math.floor(Math.random()*24)).padStart(2,'0')}:${String(Math.floor(Math.random()*60)).padStart(2,'0')}:00` : null,
-        Lat_Site: 40.7 + Math.random() * 0.5,
-        Lon_Site: 28.6 + Math.random() * 0.9
-      }))
+      {cab_name:"GL34_IST_050",enabled_date:"2023-11-06 14:05:50",Lat_Site:40.9056,Lon_Site:29.0034}
     ];
 
 const utilizedCells = [
@@ -389,85 +383,26 @@ const utilizedCells = [
   { id: 38, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_038", cellId: 8038, cellName: "IST038_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-04 16:30:45", lMax: 167, prb: 70, thrg: "60 Minutes", lat: 40.7778, lng: 29.4434 },
   { id: 39, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_039", cellId: 8039, cellName: "IST039_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-04 16:35:45", lMax: 184, prb: 54, thrg: "60 Minutes", lat: 40.8001, lng: 29.4712 },
   { id: 40, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_040", cellId: 8040, cellName: "IST040_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-04 16:40:45", lMax: 156, prb: 36, thrg: "60 Minutes", lat: 40.7667, lng: 29.4301 },
-  { id: 41, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_041", cellId: 8041, cellName: "IST041_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-05 11:10:30", lMax: 181, prb: 93, thrg: "60 Minutes", lat: 41.2456, lng: 28.9234 },
-  { id: 42, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_042", cellId: 8042, cellName: "IST042_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-05 11:15:30", lMax: 168, prb: 46, thrg: "60 Minutes", lat: 41.2523, lng: 28.9301 },
-  { id: 43, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_043", cellId: 8043, cellName: "IST043_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-05 11:20:30", lMax: 176, prb: 77, thrg: "60 Minutes", lat: 41.2389, lng: 28.9089 },
-  { id: 44, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_044", cellId: 8044, cellName: "IST044_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-05 11:25:30", lMax: 189, prb: 28, thrg: "60 Minutes", lat: 41.2578, lng: 28.9456 },
-  { id: 45, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_045", cellId: 8045, cellName: "IST045_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-05 11:30:30", lMax: 159, prb: 65, thrg: "60 Minutes", lat: 41.2301, lng: 28.9012 },
-  { id: 46, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_046", cellId: 8046, cellName: "IST046_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-06 13:45:50", lMax: 178, prb: 84, thrg: "60 Minutes", lat: 40.9234, lng: 29.0156 },
-  { id: 47, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_047", cellId: 8047, cellName: "IST047_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-06 13:50:50", lMax: 169, prb: 32, thrg: "60 Minutes", lat: 40.9301, lng: 29.0223 },
-  { id: 48, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_048", cellId: 8048, cellName: "IST048_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-06 13:55:50", lMax: 174, prb: 69, thrg: "60 Minutes", lat: 40.9167, lng: 28.9989 },
-  { id: 49, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_049", cellId: 8049, cellName: "IST049_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-06 14:00:50", lMax: 187, prb: 58, thrg: "60 Minutes", lat: 40.9389, lng: 29.0367 },
-  { id: 50, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_050", cellId: 8050, cellName: "IST050_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-06 14:05:50", lMax: 161, prb: 11, thrg: "60 Minutes", lat: 40.9056, lng: 29.0034 },
-  { id: 51, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_051", cellId: 8051, cellName: "IST051_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-07 08:30:20", lMax: 180, prb: 80, thrg: "60 Minutes", lat: 41.0923, lng: 28.7234 },
-  { id: 52, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_052", cellId: 8052, cellName: "IST052_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-07 08:35:20", lMax: 171, prb: 50, thrg: "60 Minutes", lat: 41.0989, lng: 28.7301 },
-  { id: 53, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_053", cellId: 8053, cellName: "IST053_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-07 08:40:20", lMax: 177, prb: 95, thrg: "60 Minutes", lat: 41.0856, lng: 28.7089 },
-  { id: 54, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_054", cellId: 8054, cellName: "IST054_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-07 08:45:20", lMax: 190, prb: 41, thrg: "60 Minutes", lat: 41.1034, lng: 28.7467 },
-  { id: 55, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_055", cellId: 8055, cellName: "IST055_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-07 08:50:20", lMax: 164, prb: 62, thrg: "60 Minutes", lat: 41.0778, lng: 28.7145 },
-  { id: 56, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_056", cellId: 8056, cellName: "IST056_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-08 15:15:40", lMax: 183, prb: 75, thrg: "60 Minutes", lat: 40.8678, lng: 29.3245 },
-  { id: 57, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_057", cellId: 8057, cellName: "IST057_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-08 15:20:40", lMax: 172, prb: 21, thrg: "60 Minutes", lat: 40.8745, lng: 29.3312 },
-  { id: 58, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_058", cellId: 8058, cellName: "IST058_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-08 15:25:40", lMax: 179, prb: 51, thrg: "60 Minutes", lat: 40.8612, lng: 29.3089 },
-  { id: 59, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_059", cellId: 8059, cellName: "IST059_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-08 15:30:40", lMax: 192, prb: 86, thrg: "60 Minutes", lat: 40.8823, lng: 29.3467 },
-  { id: 60, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_060", cellId: 8060, cellName: "IST060_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-08 15:35:40", lMax: 165, prb: 37, thrg: "60 Minutes", lat: 40.8534, lng: 29.3012 },
-  { id: 61, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_061", cellId: 8061, cellName: "IST061_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-09 10:45:25", lMax: 182, prb: 73, thrg: "60 Minutes", lat: 41.1567, lng: 28.8901 },
-  { id: 62, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_062", cellId: 8062, cellName: "IST062_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-09 10:50:25", lMax: 170, prb: 60, thrg: "60 Minutes", lat: 41.1634, lng: 28.8967 },
-  { id: 63, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_063", cellId: 8063, cellName: "IST063_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-09 10:55:25", lMax: 176, prb: 29, thrg: "60 Minutes", lat: 41.1501, lng: 28.8734 },
-  { id: 64, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_064", cellId: 8064, cellName: "IST064_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-09 11:00:25", lMax: 188, prb: 48, thrg: "60 Minutes", lat: 41.1712, lng: 28.9123 },
-  { id: 65, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_065", cellId: 8065, cellName: "IST065_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-09 11:05:25", lMax: 163, prb: 97, thrg: "60 Minutes", lat: 41.1423, lng: 28.8612 },
-  { id: 66, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_066", cellId: 8066, cellName: "IST066_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-10 14:20:35", lMax: 179, prb: 25, thrg: "60 Minutes", lat: 40.7956, lng: 29.1678 },
-  { id: 67, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_067", cellId: 8067, cellName: "IST067_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-10 14:25:35", lMax: 173, prb: 82, thrg: "60 Minutes", lat: 40.8023, lng: 29.1745 },
-  { id: 68, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_068", cellId: 8068, cellName: "IST068_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-10 14:30:35", lMax: 178, prb: 39, thrg: "60 Minutes", lat: 40.7889, lng: 29.1512 },
-  { id: 69, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_069", cellId: 8069, cellName: "IST069_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-10 14:35:35", lMax: 185, prb: 66, thrg: "60 Minutes", lat: 40.8112, lng: 29.1856 },
-  { id: 70, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_070", cellId: 8070, cellName: "IST070_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-10 14:40:35", lMax: 162, prb: 44, thrg: "60 Minutes", lat: 40.7778, lng: 29.1389 },
-  { id: 71, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_071", cellId: 8071, cellName: "IST071_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-11 09:00:15", lMax: 181, prb: 100, thrg: "60 Minutes", lat: 41.1890, lng: 28.9567 },
-  { id: 72, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_072", cellId: 8072, cellName: "IST072_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-11 09:05:15", lMax: 169, prb: 22, thrg: "60 Minutes", lat: 41.1956, lng: 28.9634 },
-  { id: 73, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_073", cellId: 8073, cellName: "IST073_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-11 09:10:15", lMax: 175, prb: 53, thrg: "60 Minutes", lat: 41.1823, lng: 28.9401 },
-  { id: 74, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_074", cellId: 8074, cellName: "IST074_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-11 09:15:15", lMax: 186, prb: 94, thrg: "60 Minutes", lat: 41.2034, lng: 28.9801 },
-  { id: 75, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_075", cellId: 8075, cellName: "IST075_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-11 09:20:15", lMax: 160, prb: 26, thrg: "60 Minutes", lat: 41.1745, lng: 28.9234 },
-  { id: 76, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_076", cellId: 8076, cellName: "IST076_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-12 16:30:45", lMax: 184, prb: 57, thrg: "60 Minutes", lat: 40.9567, lng: 29.4123 },
-  { id: 77, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_077", cellId: 8077, cellName: "IST077_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-12 16:35:45", lMax: 171, prb: 99, thrg: "60 Minutes", lat: 40.9634, lng: 29.4190 },
-  { id: 78, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_078", cellId: 8078, cellName: "IST078_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-12 16:40:45", lMax: 177, prb: 15, thrg: "60 Minutes", lat: 40.9501, lng: 28.3956 },
-  { id: 79, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_079", cellId: 8079, cellName: "IST079_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-12 16:45:45", lMax: 189, prb: 90, thrg: "60 Minutes", lat: 40.9712, lng: 29.4467 },
-  { id: 80, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_080", cellId: 8080, cellName: "IST080_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-12 16:50:45", lMax: 158, prb: 33, thrg: "60 Minutes", lat: 40.9389, lng: 29.3734 },
-  { id: 81, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_081", cellId: 8081, cellName: "IST081_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-13 11:15:50", lMax: 180, prb: 98, thrg: "60 Minutes", lat: 41.2178, lng: 28.7890 },
-  { id: 82, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_082", cellId: 8082, cellName: "IST082_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-13 11:20:50", lMax: 167, prb: 12, thrg: "60 Minutes", lat: 41.2245, lng: 28.7956 },
-  { id: 83, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_083", cellId: 8083, cellName: "IST083_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-13 11:25:50", lMax: 174, prb: 74, thrg: "60 Minutes", lat: 41.2112, lng: 28.7723 },
-  { id: 84, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_084", cellId: 8084, cellName: "IST084_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-13 11:30:50", lMax: 187, prb: 30, thrg: "60 Minutes", lat: 41.2301, lng: 28.8178 },
-  { id: 85, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_085", cellId: 8085, cellName: "IST085_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-13 11:35:50", lMax: 161, prb: 16, thrg: "60 Minutes", lat: 41.2034, lng: 28.7612 },
-  { id: 86, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_086", cellId: 8086, cellName: "IST086_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-14 13:45:20", lMax: 182, prb: 19, thrg: "60 Minutes", lat: 40.8234, lng: 29.2567 },
-  { id: 87, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_087", cellId: 8087, cellName: "IST087_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-14 13:50:20", lMax: 170, prb: 96, thrg: "60 Minutes", lat: 40.8301, lng: 28.2634 },
-  { id: 88, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_088", cellId: 8088, cellName: "IST088_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-14 13:55:20", lMax: 176, prb: 20, thrg: "60 Minutes", lat: 40.8167, lng: 29.2401 },
-  { id: 89, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_089", cellId: 8089, cellName: "IST089_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-14 14:00:20", lMax: 188, prb: 13, thrg: "60 Minutes", lat: 40.8389, lng: 29.2823 },
-  { id: 90, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_090", cellId: 8090, cellName: "IST090_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-14 14:05:20", lMax: 159, prb: 14, thrg: "60 Minutes", lat: 40.8056, lng: 29.2234 },
-  { id: 91, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_091", cellId: 8091, cellName: "IST091_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-15 10:30:40", lMax: 183, prb: 17, thrg: "60 Minutes", lat: 41.0345, lng: 28.8234 },
-  { id: 92, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_092", cellId: 8092, cellName: "IST092_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-15 10:35:40", lMax: 168, prb: 10, thrg: "60 Minutes", lat: 41.0412, lng: 28.8301 },
-  { id: 93, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_093", cellId: 8093, cellName: "IST093_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-15 10:40:40", lMax: 179, prb: 11, thrg: "60 Minutes", lat: 41.0278, lng: 28.8089 },
-  { id: 94, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_094", cellId: 8094, cellName: "IST094_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-15 10:45:40", lMax: 185, prb: 91, thrg: "60 Minutes", lat: 41.0478, lng: 28.8456 },
-  { id: 95, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_095", cellId: 8095, cellName: "IST095_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-15 10:50:40", lMax: 164, prb: 72, thrg: "60 Minutes", lat: 41.0167, lng: 28.8012 },
-  { id: 96, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_096", cellId: 8096, cellName: "IST096_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-11-16 15:20:25", lMax: 181, prb: 64, thrg: "60 Minutes", lat: 40.9845, lng: 29.0234 },
-  { id: 97, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_097", cellId: 8097, cellName: "IST097_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-11-16 15:25:25", lMax: 172, prb: 13, thrg: "60 Minutes", lat: 40.9912, lng: 29.0301 },
-  { id: 98, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_098", cellId: 8098, cellName: "IST098_LTE_03", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-11-16 15:30:25", lMax: 177, prb: 98, thrg: "60 Minutes", lat: 40.9778, lng: 29.0089 },
-  { id: 99, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_099", cellId: 8099, cellName: "IST099_LTE_04", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-11-16 15:35:25", lMax: 190, prb: 27, thrg: "60 Minutes", lat: 41.0012, lng: 29.0467 },
   { id: 100, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_100", cellId: 8100, cellName: "IST100_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-16 15:40:25", lMax: 163, prb: 14, thrg: "60 Minutes", lat: 40.9612, lng: 29.0012 }
 ];
 
     // Harita ve katmanlar
     const map = L.map('map', { 
       center: [39.0, 35.0], 
-      zoom: 6, 
-      minZoom: 6,
+      zoom: 6.5, 
+      minZoom: 6.5,
       maxZoom: 16,
       preferCanvas: true 
     });
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+      attribution: 'Selahattin AY'
+    });
 
     const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
-      attribution: '&copy; Esri'
-    });
+      attribution: ' Selahattin AY'
+    }).addTo(map);
 
     const fixedNEsLayer = L.layerGroup().addTo(map);
     const disconnectedNEsLayer = L.layerGroup().addTo(map);
@@ -483,6 +418,9 @@ const utilizedCells = [
       fixedNEsLayer.clearLayers();
       disconnectedNEsLayer.clearLayers();
       
+      const fixedMarkers = [];
+      const disconnectedMarkers = [];
+      
       data.forEach(s => {
         const { Lat_Site: lat, Lon_Site: lng, cab_name, enabled_date } = s;
         if (!isValidCoord(+lat, +lng)) return;
@@ -492,16 +430,26 @@ const utilizedCells = [
         const popupContent = `<b>${cab_name}</b><br/>Düzelme: ${enabled_date || '-'}`;
         
         const marker = L.circleMarker([+lat, +lng], {
-          radius: 3, color: '#fff', weight: 1, fillColor: fill, fillOpacity: 0.8,
-          interactive: true, bubblingMouseEvents: false, pane: 'markerPane'
+          radius: 3, 
+          color: '#fff', 
+          weight: 1, 
+          fillColor: fill, 
+          fillOpacity: 0.8,
+          interactive: true, 
+          bubblingMouseEvents: false, 
+          pane: 'markerPane'
         }).bindPopup(popupContent);
 
         if (isFixed) {
-          marker.addTo(fixedNEsLayer);
+          fixedMarkers.push(marker);
         } else {
-          marker.addTo(disconnectedNEsLayer);
+          disconnectedMarkers.push(marker);
         }
       });
+      
+      // ✅ Batch ekleme daha hızlı
+      fixedMarkers.forEach(m => m.addTo(fixedNEsLayer));
+      disconnectedMarkers.forEach(m => m.addTo(disconnectedNEsLayer));
     }
 
     function renderHeatmap(utilCells) {
@@ -511,33 +459,57 @@ const utilizedCells = [
 
       utilizedCellsData = utilCells;
 
-      const points = utilCells
-        .map(uc => {
-          const { lat, lng, prb } = uc;
-          return isValidCoord(+lat, +lng) ? [+lat, +lng, Math.max(0, Math.min(prb / 100, 1))] : null;
-        })
-        .filter(p => p);
+      // PRB değerlerini ısıl harita için hazırla (0-1 arasında normalize et)
+      const heatData = utilCells
+        .filter(uc => isValidCoord(+uc.lat, +uc.lng))
+        .map(uc => [+uc.lat, +uc.lng, uc.prb / 100]);
 
-      if (points.length === 0) return;
-      
-      heatmapLayer = L.heatLayer(points, {
-        radius: 25, blur: 25, maxZoom: 9, maxIntensity: 1,
-        gradient: { 0.0: 'green', 0.4: 'yellow', 0.6: 'darkorange', 1.0: 'red' }
-      }).addTo(map);
+      // Isıl harita oluştur
+      if (heatData.length > 0) {
+        heatmapLayer = L.heatLayer(heatData, {
+          radius: 20,
+          blur: 12,
+          maxZoom: 8,
+          max: 1,
+          minOpacity: 0.5,
+      gradient: {
+            0.0: '#006400',     // DarkGreen
+            0.2: '#00FF00',     // Green
+            0.35: '#FFFF66',    // Light Yellow
+            0.5: '#FFD700',     // Gold
+            0.65: '#FF8C00',    // Dark Orange
+            0.8: '#FF7F50',     // Coral
+            0.9: '#FF0000',     // Red
+            1.0: '#8B0000'      // DarkRed
+        }
+        }).addTo(map);
+      }
 
+      // Marker layer oluştur (tıklanabilirlik için)
       utilizedMarkersLayer = L.layerGroup();
       utilCells.forEach(uc => {
         const { lat, lng, cellName, cabName, cellId, reason, date, lMax, prb, thrg } = uc;
         if (!isValidCoord(+lat, +lng)) return;
         
         const marker = L.circleMarker([+lat, +lng], {
-          radius: 5, color: 'rgba(0,0,0,0)', weight: 0,
-          fillColor: 'rgba(0,0,0,0)', fillOpacity: 0, interactive: true, pane: 'markerPane'
+          radius: 4,
+          color: 'transparent',
+          weight: 0,
+          fillColor: 'transparent',
+          fillOpacity: 0,
+          interactive: true,
+          pane: 'markerPane'
         });
 
         marker.on('click', () => { 
           showDetailPanel(uc);
         });
+
+        marker.bindPopup(`
+          <b>${cellName}</b><br/>
+          PRB: <strong>${prb}%</strong>
+        `);
+
         marker.addTo(utilizedMarkersLayer);
       });
       
@@ -560,7 +532,6 @@ const utilizedCells = [
         <tr><td>📅 Tarih:</td><td>${cell.date}</td></tr>
         <tr><td>📊 PRB:</td><td><span class="${getPRBClass(cell.prb)}">${cell.prb}%</span></td></tr>
         <tr><td>📈 lMax:</td><td>${cell.lMax}</td></tr>
-        <tr><td>⏱️ Threshold:</td><td>${cell.thrg}</td></tr>
         <tr><td>📍 Konum:</td><td>${(+cell.lat).toFixed(4)}, ${(+cell.lng).toFixed(4)}</td></tr>
       `;
       document.getElementById('detailPanel').classList.add('show');
@@ -571,20 +542,22 @@ const utilizedCells = [
       document.getElementById('detailPanel').classList.remove('show');
     }
 
+    function closeSearchResults() {
+      document.getElementById('searchResults').classList.remove('show');
+    }
+
     function performSearch(query) {
       if (!query.trim()) {
         document.getElementById('searchResults').classList.remove('show');
         return;
       }
 
-      // utilizedCells'ten arama
       const utilizedResults = utilizedCellsData.filter(cell => 
         cell.cellName.toLowerCase().includes(query.toLowerCase()) ||
         cell.cabName.toLowerCase().includes(query.toLowerCase()) ||
         cell.reason.toLowerCase().includes(query.toLowerCase())
       );
 
-      // siteStatuses'tan arama
       const siteResults = siteStatuses.filter(site =>
         site.cab_name.toLowerCase().includes(query.toLowerCase())
       ).map(site => ({
@@ -602,9 +575,7 @@ const utilizedCells = [
         isSite: true
       }));
 
-      // Sonuçları birleştir
       const allResults = [...utilizedResults, ...siteResults];
-
       const table = document.getElementById('resultsTable');
       
       if (allResults.length === 0) {
@@ -613,41 +584,76 @@ const utilizedCells = [
         return;
       }
 
-      table.innerHTML = allResults.slice(0, 20).map(cell => `
-        <tr class="clickable" onclick="handleCellClick('${cell.cellName}', ${cell.lat}, ${cell.lng}, '${cell.id}')">
-          <td>${cell.cellName}</td>
-          <td>${cell.cabName} • ${cell.isSite ? (cell.date !== '-' ? '✓ Aktif' : '✗ İnaktif') : 'PRB: <span class="' + getPRBClass(cell.prb) + '">' + cell.prb + '%</span>'}</td>
-        </tr>
-      `).join('');
+      // ✅ FİX: Doğru şekilde escape edilmiş onclick handler
+      table.innerHTML = allResults.slice(0, 20).map((cell, idx) => {
+        const prbClass = getPRBClass(cell.prb);
+        const statusText = cell.isSite 
+          ? (cell.date !== '-' ? '✓ Aktif' : '✗ İnaktif')
+          : `PRB: <span class="${prbClass}">${cell.prb}%</span>`;
+        
+        return `
+          <tr class="clickable" data-index="${idx}" data-id="${cell.id}" data-lat="${cell.lat}" data-lng="${cell.lng}">
+            <td>${escapeHtml(cell.cellName)}</td>
+            <td>${escapeHtml(cell.cabName)} • ${statusText}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // ✅ Event delegation ile tıklamaları yönet
+      document.querySelectorAll('#resultsTable tr[data-id]').forEach(row => {
+        row.addEventListener('click', function() {
+          const id = this.getAttribute('data-id');
+          const lat = parseFloat(this.getAttribute('data-lat'));
+          const lng = parseFloat(this.getAttribute('data-lng'));
+          handleCellClick(id, lat, lng);
+        });
+      });
 
       document.getElementById('searchResults').classList.add('show');
     }
 
-    window.handleCellClick = function(cellName, lat, lng, id) {
-      // Site mi yoksa hücre mi kontrol et
-      if (id.startsWith('site_')) {
-        const site = siteStatuses.find(s => s.cab_name === cellName);
-        if (site) {
-          map.setView([site.Lat_Site, site.Lon_Site], 14);
-          // Site detay paneli göster
-          const table = document.getElementById('detailTable');
-          table.innerHTML = `
-            <tr><td>🏢 Saha Adı:</td><td>${site.cab_name}</td></tr>
-            <tr><td>📊 Durum:</td><td>${site.enabled_date ? '<span style="color: #4caf50; font-weight: bold;">✓ Aktif</span>' : '<span style="color: #f44336; font-weight: bold;">✗ İnaktif</span>'}</td></tr>
-            <tr><td>📅 Etkinleştirme Tarihi:</td><td>${site.enabled_date || 'Henüz etkinleştirilmedi'}</td></tr>
-            <tr><td>📍 Latitude:</td><td>${(+site.Lat_Site).toFixed(6)}</td></tr>
-            <tr><td>📍 Longitude:</td><td>${(+site.Lon_Site).toFixed(6)}</td></tr>
-          `;
-          document.getElementById('detailPanel').classList.add('show');
-          document.getElementById('searchResults').classList.remove('show');
+    // ✅ HTML escape fonksiyonu
+    function escapeHtml(text) {
+      const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      };
+      return String(text).replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // ✅ İYİLEŞTİRİLMİŞ handleCellClick
+    window.handleCellClick = function(id, lat, lng) {
+      try {
+        // Site mi yoksa hücre mi kontrol et
+        if (id.startsWith('site_')) {
+          const cellName = id.replace('site_', '');
+          const site = siteStatuses.find(s => s.cab_name === cellName);
+          if (site) {
+            map.setView([site.Lat_Site, site.Lon_Site], 14);
+            const table = document.getElementById('detailTable');
+            table.innerHTML = `
+              <tr><td>🏢 Saha Adı:</td><td>${escapeHtml(site.cab_name)}</td></tr>
+              <tr><td>📊 Durum:</td><td>${site.enabled_date ? '<span style="color: #4caf50; font-weight: bold;">✓ Aktif</span>' : '<span style="color: #f44336; font-weight: bold;">✗ İnaktif</span>'}</td></tr>
+              <tr><td>📅 Etkinleştirme Tarihi:</td><td>${site.enabled_date || 'Henüz etkinleştirilmedi'}</td></tr>
+              <tr><td>📍 Latitude:</td><td>${(+site.Lat_Site).toFixed(6)}</td></tr>
+              <tr><td>📍 Longitude:</td><td>${(+site.Lon_Site).toFixed(6)}</td></tr>
+            `;
+            document.getElementById('detailPanel').classList.add('show');
+            document.getElementById('searchResults').classList.remove('show');
+          }
+        } else {
+          // Hücre detay paneli
+          const cell = utilizedCellsData.find(c => c.id == id);
+          if (cell) {
+            map.setView([lat, lng], 14);
+            showDetailPanel(cell);
+          }
         }
-      } else {
-        // Hücre detay paneli
-        const cell = utilizedCellsData.find(c => c.id == id);
-        if (cell) {
-          map.setView([lat, lng], 14);
-          showDetailPanel(cell);
-        }
+      } catch (error) {
+        console.error('Hata:', error);
       }
     };
 
@@ -703,6 +709,74 @@ const utilizedCells = [
     // Initialize
     renderSites(siteStatuses);
     renderHeatmap(utilizedCells);
+
+    // Deprem Halkaları
+    function renderEarthquakes(earthquakes) {
+      earthquakes.forEach(eq => {
+        const { latitude, longitude, magnitude, location, eventDate } = eq;
+        if (!isValidCoord(+latitude, +longitude)) return;
+
+        // Büyüklüğe göre renk belirle
+        let color;
+        if (magnitude < 4) color = 'green';
+        else if (magnitude < 5) color = 'blue';
+        else if (magnitude < 6) color = 'orange';
+        else if (magnitude < 7) color = 'red';
+        else color = 'purple';
+
+        // Merkez noktası - weight 5 daire
+        L.circleMarker([+latitude, +longitude], {
+          radius: 3,
+          color: color,
+          weight: 1,
+          fillColor: color,
+          fillOpacity: 0.5,
+          interactive: true,
+          pane: 'markerPane'
+        }).bindPopup(`
+          <b>🌍 Deprem</b><br/>
+          <strong>${location}</strong><br/>
+          Şiddet: <strong>${magnitude}</strong><br/>
+          Tarih: ${eventDate}<br/>
+          Konum: ${(+latitude).toFixed(4)}, ${(+longitude).toFixed(4)}
+        `).addTo(map);
+
+        // Tek seviye animasyonlu genişleyen halka
+        function createWave(lat, lng, waveColor) {
+          let currentRadius = 0;
+          const maxRadius = 17000;
+          const expandingCircle = L.circle([lat, lng], {
+            color: "white",
+            weight: 1,
+            fillColor: waveColor,
+            fillOpacity: 0.3,
+            radius: currentRadius,
+            interactive: false,
+            pane: 'markerPane'
+          }).addTo(map);
+
+          // Animasyon döngüsü
+          const waveInterval = setInterval(() => {
+            currentRadius += 600;
+            if (currentRadius > maxRadius) {
+              currentRadius = 0;
+            }
+            expandingCircle.setRadius(currentRadius);
+          }, 50);
+
+          // Haritadan kaldırıldığında animasyonu temizle
+          expandingCircle.on('remove', () => {
+            clearInterval(waveInterval);
+          });
+        }
+
+        // Tek seviye halka oluştur
+        createWave(+latitude, +longitude, color);
+      });
+    }
+
+    // Depremler haritaya ekle
+    renderEarthquakes(earthquakesRaw);
   </script>
 </body>
 </html>
