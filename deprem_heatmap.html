@@ -62,7 +62,6 @@
     .dot-active { background: #4caf50; }
     .dot-inactive { background: #f44336; }
 
-    /* Katman Seçici */
     .layer-control {
       position: absolute; z-index: 1000; left: 10px; top: 10px;
       background: rgba(255,255,255,0.97); border-radius: 8px;
@@ -90,9 +89,8 @@
       margin-right: 8px; cursor: pointer; accent-color: #4CAF50;
     }
 
-    /* Arama Sonuçları Tablosu */
     #searchResults {
-      display: none; position: absolute; bottom: 25px; right: 10px; z-index: 1001;
+      display: none; position: absolute; bottom: 25px; left: 10px; z-index: 1001;
       background: rgba(255,255,255,0.98); border-radius: 8px; 
       box-shadow: 0 6px 20px rgba(0,0,0,0.2); max-height: 400px; width: 450px;
       overflow: hidden; font-family: "Segoe UI", Roboto, Arial;
@@ -152,7 +150,6 @@
       padding: 20px; text-align: center; color: #999; font-size: 12px;
     }
 
-    /* Detay Panel */
     #detailPanel {
       display: none; position: absolute; bottom: 25px; right: 10px; z-index: 1001;
       background: rgba(255,255,255,0.98); border-radius: 8px;
@@ -200,12 +197,11 @@
 <body>
   <div id="map"></div>
   
-  <!-- Katman Seçici -->
   <div class="layer-control">
     <div class="layer-control-header">🗺️ Harita Katmanları</div>
     <div class="layer-control-body">
       <label>
-        <input type="radio" name="mapLayer" value="osm" >
+        <input type="radio" name="mapLayer" value="osm">
         OpenStreetMap
       </label>
       <label>
@@ -215,7 +211,6 @@
     </div>
   </div>
   
-  <!-- Kontrol Paneli -->
   <div class="controls-panel">
     <div class="panel-header">⚙️ Kontrol Paneli</div>
     
@@ -225,15 +220,15 @@
 
     <div class="checkbox-group">
       <label>
-        <input type="checkbox" id="heatToggleInput" checked>
+        <input type="checkbox" id="heatToggleInput">
         Isıl Harita (PRB'ye göre)
       </label>
       <label>
-        <input type="checkbox" id="fixedNEsToggle" checked>
+        <input type="checkbox" id="fixedNEsToggle">
         Aktif Sahalar (Fixed NE's)
       </label>
       <label>
-        <input type="checkbox" id="disconnectedNEsToggle" checked>
+        <input type="checkbox" id="disconnectedNEsToggle">
         İnaktif Sahalar (Disconnected NE's)
       </label>
     </div>
@@ -250,27 +245,23 @@
     </div>
   </div>
 
-  <!-- Arama Sonuçları -->
   <div id="searchResults">
     <div class="results-header">
       📊 Arama Sonuçları
       <span class="close-btn" onclick="closeSearchResults()">×</span>
     </div>
     <div class="results-table-container">
-      <table class="results-table" id="resultsTable">
-      </table>
+      <table class="results-table" id="resultsTable"></table>
     </div>
   </div>
 
-  <!-- Detay Panel -->
   <div id="detailPanel">
     <div class="detail-header">
-      📍 Hücre Detayları
+      📍 Detaylar
       <span class="close-btn" onclick="closeDetailPanel()">×</span>
     </div>
     <div class="detail-body">
-      <table class="detail-table" id="detailTable">
-      </table>
+      <table class="detail-table" id="detailTable"></table>
     </div>
   </div>
 
@@ -278,48 +269,28 @@
   <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
 
   <script>
-    // Veriler
-    const earthquakesRaw = [
-      {id:1079,eventId:523046,eventDate:"2025-04-23 12:49:10",magnitude:3.20,longitude:28.2444,latitude:40.86,location:"MARMARA DENIZI - SILIVRI",depth:6.92},
-      {id:1080,eventId:523051,eventDate:"2025-04-23 12:51:19",magnitude:5.90,longitude:28.3267,latitude:40.8369,location:"MARMARA DENIZI - BUYUKCEKMECE",depth:6.99},
-      {id:1081,eventId:526075,eventDate:"2025-05-13 22:51:16",magnitude:4.50,longitude:27.0817,latitude:35.3289,location:"AKDENIZ - DATCA",depth:20.41},
-      {id:1083,eventId:526861,eventDate:"2025-05-22 03:19:36",magnitude:7.60,longitude:25.9536,latitude:35.8053,location:"EGE DENIZI",depth:17.7},
-      {id:1105,eventId:552293,eventDate:"2025-10-27 22:48:29",magnitude:6.10,longitude:28.2308,latitude:39.1839,location:"SINDIRGI (BALIKESIR)",depth:5.99}
-    ];
-
     const siteStatuses = [
-      // İstanbul kara sınırları içinde 300 adet saha durumu
       {cab_name:"GL34_IST_001",enabled_date:"2023-10-19 05:00:00",Lat_Site:41.0156,Lon_Site:28.9789},
       {cab_name:"GL34_IST_002",enabled_date:null,Lat_Site:41.0089,Lon_Site:28.9756},
       {cab_name:"GL34_IST_003",enabled_date:"2023-09-28 20:00:00",Lat_Site:41.0234,Lon_Site:28.9823},
       {cab_name:"GL34_IST_004",enabled_date:"2023-11-01 10:15:30",Lat_Site:41.0145,Lon_Site:28.9812},
-      {cab_name:"GL34_IST_005",enabled_date:null,Lat_Site:41.0198,Lon_Site:28.9678},
       {cab_name:"GL34_IST_006",enabled_date:"2023-10-19 02:00:41",Lat_Site:40.9876,Lon_Site:29.3456},
       {cab_name:"GL34_IST_007",enabled_date:"2023-10-19 02:10:41",Lat_Site:40.9934,Lon_Site:29.3512},
       {cab_name:"GL34_IST_008",enabled_date:null,Lat_Site:40.9823,Lon_Site:29.3389},
       {cab_name:"GL34_IST_009",enabled_date:"2023-10-19 02:30:41",Lat_Site:40.9945,Lon_Site:29.3234},
       {cab_name:"GL34_IST_010",enabled_date:"2023-10-19 02:40:41",Lat_Site:40.9789,Lon_Site:29.3645},
-      {cab_name:"GL34_IST_011",enabled_date:"2023-09-28 18:00:59",Lat_Site:41.0789,Lon_Site:28.6543},
-      {cab_name:"GL34_IST_012",enabled_date:null,Lat_Site:41.0834,Lon_Site:28.6588},
-      {cab_name:"GL34_IST_013",enabled_date:"2023-09-28 18:10:59",Lat_Site:41.0745,Lon_Site:28.6498},
-      {cab_name:"GL34_IST_014",enabled_date:"2023-09-28 18:15:59",Lat_Site:41.0879,Lon_Site:28.6543},
-      {cab_name:"GL34_IST_015",enabled_date:null,Lat_Site:41.0699,Lon_Site:28.6353},
-      {cab_name:"GL34_IST_016",enabled_date:"2023-09-28 13:00:45",Lat_Site:40.9456,Lon_Site:29.1234}
     ];
 
     const utilizedCells = [
-      // İstanbul kara sınırları içinde 100 adet problemli nokta
       { id: 1, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_001", cellId: 8001, cellName: "IST001_LTE_01", reason: "LTE_High_Utilized_Cell(Youtube)", date: "2023-07-12 18:00:26", lMax: 174, prb: 87, thrg: "60 Minutes", lat: 41.0156, lng: 28.9789 },
-      { id: 2, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_002", cellId: 8002, cellName: "IST002_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-07-12 18:05:26", lMax: 168, prb: 34, thrg: "60 Minutes", lat: 41.0089, lng: 28.9756 },
-      { id: 3, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_003", cellId: 8003, cellName: "IST003_LTE_03", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-07-12 18:10:26", lMax: 181, prb: 72, thrg: "60 Minutes", lat: 41.0234, lng: 28.9823 },
-      { id: 4, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_004", cellId: 8004, cellName: "IST004_LTE_04", reason: "LTE_High_Utilized_Cell(YouTube)", date: "2023-07-12 18:15:26", lMax: 190, prb: 56, thrg: "60 Minutes", lat: 41.0145, lng: 28.9812 },
-      { id: 5, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_005", cellId: 8005, cellName: "IST005_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-07-12 18:20:26", lMax: 160, prb: 43, thrg: "30 Minutes", lat: 41.0198, lng: 28.9678 },
-      { id: 6, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_006", cellId: 8006, cellName: "IST006_LTE_01", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-10-19 02:00:41", lMax: 79, prb: 91, thrg: "60 Minutes", lat: 40.9876, lng: 29.3456 },
-      { id: 7, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_007", cellId: 8007, cellName: "IST007_LTE_02", reason: "LTE_High_Utilized_Cell(Gaming)", date: "2023-10-19 02:10:41", lMax: 88, prb: 23, thrg: "60 Minutes", lat: 40.9934, lng: 29.3512 },
-      { id: 100, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_100", cellId: 8100, cellName: "IST100_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-11-16 15:40:25", lMax: 163, prb: 14, thrg: "60 Minutes", lat: 40.9612, lng: 29.0012 }
+      { id: 2, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_001", cellId: 8002, cellName: "IST001_LTE_02", reason: "LTE_High_Utilized_Cell(TikTok)", date: "2023-07-12 18:05:26", lMax: 168, prb: 34, thrg: "60 Minutes", lat: 41.0156, lng: 28.9789 },
+      { id: 3, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_001", cellId: 8003, cellName: "IST001_LTE_03", reason: "LTE_High_Utilized_Cell(Instagram)", date: "2023-07-12 18:10:26", lMax: 181, prb: 72, thrg: "60 Minutes", lat: 41.0156, lng: 28.9789 },
+      { id: 4, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_002", cellId: 8004, cellName: "IST002_LTE_04", reason: "LTE_High_Utilized_Cell(YouTube)", date: "2023-07-12 18:15:26", lMax: 190, prb: 56, thrg: "60 Minutes", lat: 41.0089, lng: 28.9756 },
+      { id: 5, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_003", cellId: 8005, cellName: "IST003_LTE_05", reason: "LTE_High_Utilized_Cell(Video)", date: "2023-07-12 18:20:26", lMax: 160, prb: 43, thrg: "30 Minutes", lat: 41.0234, lng: 28.9823 },
+      { id: 6, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_004", cellId: 8006, cellName: "IST004_LTE_01", reason: "LTE_High_Utilized_Cell(Streaming)", date: "2023-10-19 02:00:41", lMax: 79, prb: 91, thrg: "60 Minutes", lat: 41.0145, lng: 28.9812 },
+      { id: 7, oss_id: 1, disaster_event_id: 552293, cabName: "GL34_IST_005", cellId: 8007, cellName: "IST005_LTE_02", reason: "LTE_High_Utilized_Cell(Gaming)", date: "2023-10-19 02:10:41", lMax: 88, prb: 23, thrg: "60 Minutes", lat: 41.0198, lng: 28.9678 },
     ];
 
-    // Harita ve katmanlar
     const map = L.map('map', { 
       center: [39.0, 35.0], 
       zoom: 6.5, 
@@ -327,6 +298,7 @@
       maxZoom: 16,
       preferCanvas: true 
     });
+
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: 'Selahattin AY'
@@ -334,11 +306,11 @@
 
     const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       maxZoom: 19,
-      attribution: ' Selahattin AY'
+      attribution: 'Selahattin AY'
     }).addTo(map);
 
-    const fixedNEsLayer = L.layerGroup().addTo(map);
-    const disconnectedNEsLayer = L.layerGroup().addTo(map);
+    const fixedNEsLayer = L.layerGroup();
+    const disconnectedNEsLayer = L.layerGroup();
     let heatmapLayer = null;
     let utilizedMarkersLayer = null;
     let utilizedCellsData = [];
@@ -347,12 +319,15 @@
       return isFinite(lat) && isFinite(lng);
     }
 
+    function getPRBClass(prb) {
+      if (prb >= 80) return 'prb-high';
+      if (prb >= 50) return 'prb-medium';
+      return 'prb-low';
+    }
+
     function renderSites(data) {
       fixedNEsLayer.clearLayers();
       disconnectedNEsLayer.clearLayers();
-      
-      const fixedMarkers = [];
-      const disconnectedMarkers = [];
       
       data.forEach(s => {
         const { Lat_Site: lat, Lon_Site: lng, cab_name, enabled_date } = s;
@@ -360,29 +335,27 @@
         
         const isFixed = !!enabled_date;
         const fill = isFixed ? '#4caf50' : '#f44336';
-        const popupContent = `<b>${cab_name}</b><br/>Düzelme: ${enabled_date || '-'}`;
         
         const marker = L.circleMarker([+lat, +lng], {
-          radius: 3, 
+          radius: 4, 
           color: '#fff', 
           weight: 1, 
           fillColor: fill, 
-          fillOpacity: 0.8,
+          fillOpacity: 0.9,
           interactive: true, 
           bubblingMouseEvents: false, 
           pane: 'markerPane'
-        }).bindPopup(popupContent);
+        });
 
-        if (isFixed) {
-          fixedMarkers.push(marker);
-        } else {
-          disconnectedMarkers.push(marker);
-        }
+        marker.on('click', (e) => {
+          L.DomEvent.stopPropagation(e);
+          showSiteDetailPanel(s);
+        });
+
+        marker.bindPopup(`<b>${cab_name}</b><br/>Durum: ${enabled_date ? '✓ Aktif' : '✗ İnaktif'}`);
+
+        (isFixed ? fixedNEsLayer : disconnectedNEsLayer).addLayer(marker);
       });
-      
-      // ✅ Batch ekleme daha hızlı
-      fixedMarkers.forEach(m => m.addTo(fixedNEsLayer));
-      disconnectedMarkers.forEach(m => m.addTo(disconnectedNEsLayer));
     }
 
     function renderHeatmap(utilCells) {
@@ -392,67 +365,109 @@
 
       utilizedCellsData = utilCells;
 
-      // PRB değerlerini ısıl harita için hazırla (0-1 arasında normalize et)
-      const heatData = utilCells
-        .filter(uc => isValidCoord(+uc.lat, +uc.lng))
-        .map(uc => [+uc.lat, +uc.lng, uc.prb / 100]);
+      const cellsByLocation = {};
+      utilCells.forEach(uc => {
+        if (!isValidCoord(+uc.lat, +uc.lng)) return;
+        
+        const key = `${uc.lat},${uc.lng}`;
+        if (!cellsByLocation[key]) {
+          cellsByLocation[key] = [];
+        }
+        cellsByLocation[key].push(uc);
+      });
 
-      // Isıl harita oluştur
+      const heatData = Object.entries(cellsByLocation).map(([key, cells]) => {
+        const [lat, lng] = key.split(',').map(Number);
+        const avgPrb = cells.reduce((sum, c) => sum + c.prb, 0) / cells.length;
+        const boostFactor = 1 + (cells.length - 1) * 0.15;
+        const boostedPrb = Math.min(100, avgPrb * boostFactor) / 100;
+        return [lat, lng, boostedPrb];
+      });
+
       if (heatData.length > 0) {
         heatmapLayer = L.heatLayer(heatData, {
-          radius: 20,
+          radius: 30,
           blur: 12,
-          maxZoom: 8,
+          maxZoom: 11,
           max: 1,
           minOpacity: 0.5,
-      gradient: {
-            0.0: '#006400',     // DarkGreen
-            0.2: '#00FF00',     // Green
-            0.35: '#FFFF66',    // Light Yellow
-            0.5: '#FFD700',     // Gold
-            0.65: '#FF8C00',    // Dark Orange
-            0.8: '#FF7F50',     // Coral
-            0.9: '#FF0000',     // Red
-            1.0: '#8B0000'      // DarkRed
-        }
-        }).addTo(map);
+          gradient: {
+            0.0: '#006400',
+            0.2: '#00FF00',
+            0.35: '#FFFF66',
+            0.5: '#FFD700',
+            0.65: '#FF8C00',
+            0.8: '#FF7F50',
+            0.9: '#FF0000',
+            1.0: '#8B0000'
+          }
+        });
       }
 
-      // Marker layer oluştur (tıklanabilirlik için)
       utilizedMarkersLayer = L.layerGroup();
-      utilCells.forEach(uc => {
-        const { lat, lng, cellName, cabName, cellId, reason, date, lMax, prb, thrg } = uc;
-        if (!isValidCoord(+lat, +lng)) return;
+      
+      Object.entries(cellsByLocation).forEach(([key, cellsAtLocation]) => {
+        const [lat, lng] = key.split(',').map(Number);
         
         const marker = L.circleMarker([+lat, +lng], {
-          radius: 4,
-          color: 'transparent',
-          weight: 0,
-          fillColor: 'transparent',
-          fillOpacity: 0,
+          radius: 12,
+          color: '#2196F3',
+          weight: 1,
+          fillColor: '#fff',
+          fillOpacity: 0.4,
           interactive: true,
           pane: 'markerPane'
         });
 
-        marker.on('click', () => { 
-          showDetailPanel(uc);
-        });
-
-        marker.bindPopup(`
-          <b>${cellName}</b><br/>
-          PRB: <strong>${prb}%</strong>
-        `);
+        if (cellsAtLocation.length > 1) {
+          marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            showMultipleCellsList(cellsAtLocation);
+          });
+          marker.bindPopup(`<b>${cellsAtLocation.length} Utilized Cells</b>`);
+        } else {
+          marker.on('click', (e) => {
+            L.DomEvent.stopPropagation(e);
+            showDetailPanel(cellsAtLocation[0]);
+          });
+          marker.bindPopup(`<b>${cellsAtLocation[0].cellName}</b><br/>PRB: <strong>${cellsAtLocation[0].prb}%</strong>`);
+        }
 
         marker.addTo(utilizedMarkersLayer);
       });
-      
-      utilizedMarkersLayer.addTo(map);
     }
 
-    function getPRBClass(prb) {
-      if (prb >= 80) return 'prb-high';
-      if (prb >= 50) return 'prb-medium';
-      return 'prb-low';
+    function showSiteDetailPanel(site) {
+      const relatedCells = utilizedCellsData.filter(uc => uc.cabName === site.cab_name);
+      
+      const table = document.getElementById('detailTable');
+      let html = `
+        <tr><td>🏢 Saha Adı:</td><td><strong>${site.cab_name}</strong></td></tr>
+        <tr><td>📊 Durum:</td><td>${site.enabled_date ? '<span style="color: #4caf50; font-weight: bold;">✓ Aktif</span>' : '<span style="color: #f44336; font-weight: bold;">✗ İnaktif</span>'}</td></tr>
+        <tr><td>📅 Tarih:</td><td>${site.enabled_date || 'Henüz etkinleştirilmedi'}</td></tr>
+        <tr><td>📍 Lat/Lng:</td><td>${(+site.Lat_Site).toFixed(6)}, ${(+site.Lon_Site).toFixed(6)}</td></tr>
+      `;
+
+      if (relatedCells.length > 0) {
+        html += `<tr><td colspan="2" style="border-top: 2px solid #2196F3; padding-top: 10px; font-weight: bold; color: #2196F3;">📱 Bağlı Hücreler (${relatedCells.length})</td></tr>`;
+        relatedCells.forEach(cell => {
+          html += `
+            <tr style="cursor: pointer; background: #f9f9f9;" onclick="window.selectCell(${cell.id})">
+              <td colspan="2">
+                <strong>${cell.cellName}</strong> 
+                <span class="${getPRBClass(cell.prb)}" style="float: right;">${cell.prb}%</span>
+                <br/><small style="color: #666;">${cell.reason}</small>
+              </td>
+            </tr>
+          `;
+        });
+      } else {
+        html += `<tr><td colspan="2" style="color: #999; font-style: italic;">Bu sahaya ait hücre bulunmamaktadır.</td></tr>`;
+      }
+
+      table.innerHTML = html;
+      document.getElementById('detailPanel').classList.add('show');
+      document.getElementById('searchResults').classList.remove('show');
     }
 
     function showDetailPanel(cell) {
@@ -471,6 +486,50 @@
       document.getElementById('searchResults').classList.remove('show');
     }
 
+    function showMultipleCellsList(cells) {
+      const table = document.getElementById('detailTable');
+      let html = `<tr><td colspan="2" style="border-bottom: 2px solid #2196F3; padding-bottom: 10px; font-weight: bold; color: #2196F3;">📍 Bu noktadaki hücreler (${cells.length})</td></tr>`;
+      
+      cells.forEach(cell => {
+        html += `
+          <tr style="cursor: pointer; background: #f9f9f9;" onclick="window.selectCell(${cell.id})">
+            <td colspan="2">
+              <strong>${cell.cellName}</strong> 
+              <span class="${getPRBClass(cell.prb)}" style="float: right;">${cell.prb}%</span>
+              <br/><small style="color: #666;">${cell.cabName}</small>
+            </td>
+          </tr>
+        `;
+      });
+
+      table.innerHTML = html;
+      document.getElementById('detailPanel').classList.add('show');
+      document.getElementById('searchResults').classList.remove('show');
+    }
+
+    window.selectCell = function(cellId) {
+      const cell = utilizedCellsData.find(c => c.id === cellId);
+      if (cell) {
+        map.setView([+cell.lat, +cell.lng], 14);
+        showDetailPanel(cell);
+      }
+    };
+
+    window.selectResult = function(resultId) {
+      if (resultId.startsWith('site_')) {
+        // Site seçildi
+        const siteName = resultId.replace('site_', '');
+        const site = siteStatuses.find(s => s.cab_name === siteName);
+        if (site) {
+          map.setView([+site.Lat_Site, +site.Lon_Site], 14);
+          showSiteDetailPanel(site);
+        }
+      } else {
+        // utilizedCell seçildi
+        selectCell(parseInt(resultId));
+      }
+    };
+
     function closeDetailPanel() {
       document.getElementById('detailPanel').classList.remove('show');
     }
@@ -479,73 +538,6 @@
       document.getElementById('searchResults').classList.remove('show');
     }
 
-    function performSearch(query) {
-      if (!query.trim()) {
-        document.getElementById('searchResults').classList.remove('show');
-        return;
-      }
-
-      const utilizedResults = utilizedCellsData.filter(cell => 
-        cell.cellName.toLowerCase().includes(query.toLowerCase()) ||
-        cell.cabName.toLowerCase().includes(query.toLowerCase()) ||
-        cell.reason.toLowerCase().includes(query.toLowerCase())
-      );
-
-      const siteResults = siteStatuses.filter(site =>
-        site.cab_name.toLowerCase().includes(query.toLowerCase())
-      ).map(site => ({
-        id: `site_${site.cab_name}`,
-        cellName: site.cab_name,
-        cabName: site.cab_name,
-        cellId: '-',
-        reason: site.enabled_date ? 'Aktif Saha (Fixed NE)' : 'İnaktif Saha (Disconnected NE)',
-        date: site.enabled_date || '-',
-        lMax: '-',
-        prb: site.enabled_date ? 0 : 100,
-        thrg: '-',
-        lat: site.Lat_Site,
-        lng: site.Lon_Site,
-        isSite: true
-      }));
-
-      const allResults = [...utilizedResults, ...siteResults];
-      const table = document.getElementById('resultsTable');
-      
-      if (allResults.length === 0) {
-        table.innerHTML = '<tr><td colspan="2" class="no-results">Sonuç bulunamadı</td></tr>';
-        document.getElementById('searchResults').classList.add('show');
-        return;
-      }
-
-      // ✅ FİX: Doğru şekilde escape edilmiş onclick handler
-      table.innerHTML = allResults.slice(0, 20).map((cell, idx) => {
-        const prbClass = getPRBClass(cell.prb);
-        const statusText = cell.isSite 
-          ? (cell.date !== '-' ? '✓ Aktif' : '✗ İnaktif')
-          : `PRB: <span class="${prbClass}">${cell.prb}%</span>`;
-        
-        return `
-          <tr class="clickable" data-index="${idx}" data-id="${cell.id}" data-lat="${cell.lat}" data-lng="${cell.lng}">
-            <td>${escapeHtml(cell.cellName)}</td>
-            <td>${escapeHtml(cell.cabName)} • ${statusText}</td>
-          </tr>
-        `;
-      }).join('');
-
-      // ✅ Event delegation ile tıklamaları yönet
-      document.querySelectorAll('#resultsTable tr[data-id]').forEach(row => {
-        row.addEventListener('click', function() {
-          const id = this.getAttribute('data-id');
-          const lat = parseFloat(this.getAttribute('data-lat'));
-          const lng = parseFloat(this.getAttribute('data-lng'));
-          handleCellClick(id, lat, lng);
-        });
-      });
-
-      document.getElementById('searchResults').classList.add('show');
-    }
-
-    // ✅ HTML escape fonksiyonu
     function escapeHtml(text) {
       const map = {
         '&': '&amp;',
@@ -557,40 +549,59 @@
       return String(text).replace(/[&<>"']/g, m => map[m]);
     }
 
-    // ✅ İYİLEŞTİRİLMİŞ handleCellClick
-    window.handleCellClick = function(id, lat, lng) {
-      try {
-        // Site mi yoksa hücre mi kontrol et
-        if (id.startsWith('site_')) {
-          const cellName = id.replace('site_', '');
-          const site = siteStatuses.find(s => s.cab_name === cellName);
-          if (site) {
-            map.setView([site.Lat_Site, site.Lon_Site], 14);
-            const table = document.getElementById('detailTable');
-            table.innerHTML = `
-              <tr><td>🏢 Saha Adı:</td><td>${escapeHtml(site.cab_name)}</td></tr>
-              <tr><td>📊 Durum:</td><td>${site.enabled_date ? '<span style="color: #4caf50; font-weight: bold;">✓ Aktif</span>' : '<span style="color: #f44336; font-weight: bold;">✗ İnaktif</span>'}</td></tr>
-              <tr><td>📅 Etkinleştirme Tarihi:</td><td>${site.enabled_date || 'Henüz etkinleştirilmedi'}</td></tr>
-              <tr><td>📍 Latitude:</td><td>${(+site.Lat_Site).toFixed(6)}</td></tr>
-              <tr><td>📍 Longitude:</td><td>${(+site.Lon_Site).toFixed(6)}</td></tr>
-            `;
-            document.getElementById('detailPanel').classList.add('show');
-            document.getElementById('searchResults').classList.remove('show');
-          }
-        } else {
-          // Hücre detay paneli
-          const cell = utilizedCellsData.find(c => c.id == id);
-          if (cell) {
-            map.setView([lat, lng], 14);
-            showDetailPanel(cell);
-          }
-        }
-      } catch (error) {
-        console.error('Hata:', error);
+    function performSearch(query) {
+      if (!query.trim()) {
+        document.getElementById('searchResults').classList.remove('show');
+        return;
       }
-    };
 
-    // Event Listeners
+      // utilizedCells'ten ara
+      const cellResults = utilizedCellsData.filter(cell => 
+        cell.cellName.toLowerCase().includes(query.toLowerCase()) ||
+        cell.cabName.toLowerCase().includes(query.toLowerCase()) ||
+        cell.reason.toLowerCase().includes(query.toLowerCase())
+      );
+
+      // siteStatuses'tan ara
+      const siteResults = siteStatuses.filter(site =>
+        site.cab_name.toLowerCase().includes(query.toLowerCase())
+      ).map(site => ({
+        id: `site_${site.cab_name}`,
+        cellName: site.cab_name,
+        cabName: site.cab_name,
+        prb: site.enabled_date ? 0 : 100,
+        lat: site.Lat_Site,
+        lng: site.Lon_Site,
+        isSite: true,
+        enabled_date: site.enabled_date
+      }));
+
+      const allResults = [...cellResults, ...siteResults];
+      const table = document.getElementById('resultsTable');
+      
+      if (allResults.length === 0) {
+        table.innerHTML = '<tr><td colspan="2" class="no-results">Sonuç bulunamadı</td></tr>';
+        document.getElementById('searchResults').classList.add('show');
+        return;
+      }
+
+      table.innerHTML = allResults.slice(0, 20).map((result) => {
+        const prbClass = getPRBClass(result.prb);
+        const status = result.isSite 
+          ? (result.enabled_date ? '✓ Aktif' : '✗ İnaktif')
+          : `PRB: <span class="${prbClass}">${result.prb}%</span>`;
+        
+        return `
+          <tr class="clickable" onclick="window.selectResult('${result.id}')">
+            <td>${escapeHtml(result.cellName)}</td>
+            <td>${escapeHtml(result.cabName)} • ${status}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('searchResults').classList.add('show');
+    }
+
     document.getElementById('searchInput').addEventListener('input', e => {
       performSearch(e.target.value);
     });
@@ -598,8 +609,10 @@
     document.getElementById('heatToggleInput').addEventListener('change', e => {
       if (e.target.checked && heatmapLayer) {
         heatmapLayer.addTo(map);
+        utilizedMarkersLayer.addTo(map);
       } else if (!e.target.checked && heatmapLayer) {
         map.removeLayer(heatmapLayer);
+        map.removeLayer(utilizedMarkersLayer);
       }
     });
 
@@ -611,45 +624,31 @@
       e.target.checked ? map.addLayer(disconnectedNEsLayer) : map.removeLayer(disconnectedNEsLayer);
     });
 
-    const layerToggleInputs = document.querySelectorAll('input[name="layerToggle"]');
-    layerToggleInputs.forEach(input => {
+    document.querySelectorAll('input[name="mapLayer"]').forEach(input => {
       input.addEventListener('change', e => {
-        const value = e.target.value;
-        map.removeLayer(fixedNEsLayer);
-        map.removeLayer(disconnectedNEsLayer);
-        if (value === 'fixedNEs') {
-          map.addLayer(fixedNEsLayer);
-        } else if (value === 'disconnectedNEs') {
-          map.addLayer(disconnectedNEsLayer);
-        }
-      });
-    });
-
-    const mapLayerInputs = document.querySelectorAll('input[name="mapLayer"]');
-    mapLayerInputs.forEach(input => {
-      input.addEventListener('change', e => {
-        const value = e.target.value;
-        if (value === 'osm') {
+        if (e.target.value === 'osm') {
           map.addLayer(osm);
           map.removeLayer(esri);
-        } else if (value === 'esri') {
+        } else if (e.target.value === 'esri') {
           map.addLayer(esri);
           map.removeLayer(osm);
         }
       });
     });
 
-    // Initialize
-    renderSites(siteStatuses);
-    renderHeatmap(utilizedCells);
+    const earthquakesRaw = [
+      {id:1079,eventId:523046,eventDate:"2025-04-23 12:49:10",magnitude:3.20,longitude:28.2444,latitude:40.86,location:"MARMARA DENIZI - SILIVRI",depth:6.92},
+      {id:1080,eventId:523051,eventDate:"2025-04-23 12:51:19",magnitude:5.90,longitude:28.3267,latitude:40.8369,location:"MARMARA DENIZI - BUYUKCEKMECE",depth:6.99},
+      {id:1081,eventId:526075,eventDate:"2025-05-13 22:51:16",magnitude:4.50,longitude:27.0817,latitude:35.3289,location:"AKDENIZ - DATCA",depth:20.41},
+      {id:1083,eventId:526861,eventDate:"2025-05-22 03:19:36",magnitude:7.60,longitude:25.9536,latitude:35.8053,location:"EGE DENIZI",depth:17.7},
+      {id:1105,eventId:552293,eventDate:"2025-10-27 22:48:29",magnitude:6.10,longitude:28.2308,latitude:39.1839,location:"SINDIRGI (BALIKESIR)",depth:5.99}
+    ];
 
-    // Deprem Halkaları
     function renderEarthquakes(earthquakes) {
       earthquakes.forEach(eq => {
         const { latitude, longitude, magnitude, location, eventDate } = eq;
         if (!isValidCoord(+latitude, +longitude)) return;
 
-        // Büyüklüğe göre renk belirle
         let color;
         if (magnitude < 4) color = 'green';
         else if (magnitude < 5) color = 'blue';
@@ -657,7 +656,6 @@
         else if (magnitude < 7) color = 'red';
         else color = 'purple';
 
-        // Merkez noktası - weight 5 daire
         L.circleMarker([+latitude, +longitude], {
           radius: 3,
           color: color,
@@ -674,7 +672,6 @@
           Konum: ${(+latitude).toFixed(4)}, ${(+longitude).toFixed(4)}
         `).addTo(map);
 
-        // Tek seviye animasyonlu genişleyen halka
         function createWave(lat, lng, waveColor) {
           let currentRadius = 0;
           const maxRadius = 17000;
@@ -688,7 +685,6 @@
             pane: 'markerPane'
           }).addTo(map);
 
-          // Animasyon döngüsü
           const waveInterval = setInterval(() => {
             currentRadius += 600;
             if (currentRadius > maxRadius) {
@@ -697,19 +693,23 @@
             expandingCircle.setRadius(currentRadius);
           }, 50);
 
-          // Haritadan kaldırıldığında animasyonu temizle
           expandingCircle.on('remove', () => {
             clearInterval(waveInterval);
           });
         }
 
-        // Tek seviye halka oluştur
         createWave(+latitude, +longitude, color);
       });
     }
 
-    // Depremler haritaya ekle
+    renderSites(siteStatuses);
+    renderHeatmap(utilizedCells);
     renderEarthquakes(earthquakesRaw);
+
+    setTimeout(() => {
+      fixedNEsLayer.bringToFront();
+      disconnectedNEsLayer.bringToFront();
+    }, 100);
   </script>
 </body>
 </html>
