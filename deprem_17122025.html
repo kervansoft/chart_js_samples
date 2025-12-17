@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <title>Saha & Hücre Realtime Harita</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.0/MarkerCluster.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.0/MarkerCluster.Default.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    #map { height: 100vh; width: 100vw; }
+    
+    .controls-panel, .layer-control, #searchResults, #detailPanel {
+      position: absolute; z-index: 1000;
+      background: rgba(255,255,255,0.97); border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      font-family: "Segoe UI", Roboto, Arial; overflow: hidden;
+    }
+
+    .controls-panel { right: 10px; top: 10px; min-width: 280px; }
+    .layer-control { left: 10px; top: 10px; min-width: 200px; }
+    #searchResults { bottom: 25px; left: 10px; width: 450px; max-height: 400px; display: none; flex-direction: column; z-index: 1001; }
+    #detailPanel { bottom: 25px; right: 10px; width: 420px; display: none; z-index: 1001; }
+
+    .panel-header, .layer-control-header, .results-header, .detail-header {
+      color: white; padding: 12px 15px; font-weight: 600; font-size: 13px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .panel-header { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); }
+    .layer-control-header { background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%); }
+    .results-header, .detail-header { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); }
+
+    .search-box { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; }
+    .search-box input {
+      width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px;
+      font-size: 12px; font-family: inherit;
+    }
+    .search-box input:focus {
+      outline: none; border-color: #2196F3; box-shadow: 0 0 6px rgba(33, 150, 243, 0.3);
+    }
+
+    .checkbox-group, .layer-control-body {
+      padding: 12px 15px; border-bottom: 1px solid #e0e0e0;
+    }
+
+    .checkbox-group label, .layer-control-body label {
+      display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;
+      font-size: 12px; color: #333;
+    }
+
+    .checkbox-group label:last-child, .layer-control-body label:last-child { margin-bottom: 0; }
+    .checkbox-group input, .layer-control-body input { margin-right: 8px; cursor: pointer; }
+    .checkbox-group input[type="checkbox"] { accent-color: #2196F3; }
+    .layer-control-body input[type="radio"] { accent-color: #4CAF50; }
+
+    .toggle-legend { padding: 12px 15px; display: flex; gap: 12px; font-size: 11px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot-active { background: #4caf50; }
+    .dot-inactive { background: #f44336; }
+
+    #searchResults.show { display: flex; }
+    #detailPanel.show { display: block; }
+
+    .results-table-container { overflow-y: auto; flex: 1; }
+    .results-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .results-table tr { border-bottom: 1px solid #e8e8e8; }
+    .results-table tr:hover { background-color: #f5f5f5; }
+    .results-table td { padding: 10px 12px; text-align: left; }
+    .results-table td:first-child { font-weight: 600; color: #2196F3; width: 40%; }
+    .results-table td:last-child { color: #666; width: 60%; }
+    .results-table tr.clickable { cursor: pointer; }
+    .results-table tr.clickable:hover td:first-child { text-decoration: underline; }
+    .no-results { padding: 20px; text-align: center; color: #999; font-size: 12px; }
+
+    .detail-body { padding: 15px; max-height: 350px; overflow-y: auto; }
+    .detail-table { width: 100%; font-size: 11px; }
+    .detail-table tr { border-bottom: 1px solid #f0f0f0; }
+    .detail-table td { padding: 8px 0; vertical-align: top; }
+    .detail-table td:first-child { font-weight: 600; color: #2196F3; width: 35%; }
+    .detail-table td:last-child { color: #333; word-break: break-word; }
+
+    .close-btn { cursor: pointer; font-size: 18px; color: white; opacity: 0.8; transition: opacity 0.2s; }
+    .close-btn:hover { opacity: 1; }
+
+    .prb-high { color: #f44336; font-weight: bold; }
+    .prb-medium { color: #ff9800; font-weight: bold; }
+    .prb-low { color: #4caf50; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  
+  <div class="layer-control">
+    <div class="layer-control-header">🗺️ Harita Katmanları</div>
+    <div class="layer-control-body">
+      <label><input type="radio" name="mapLayer" value="osm"> OpenStreetMap</label>
+      <label><input type="radio" name="mapLayer" value="esri" checked> Uydu Görüntüsü</label>
+    </div>
+  </div>
+  
+  <div class="controls-panel">
+    <div class="panel-header">⚙️ Kontrol Paneli</div>
+    <div class="search-box"><input type="text" id="searchInput" placeholder="Cell/Site arama..."></div>
+    <div class="checkbox-group">
+      <label><input type="checkbox" id="heatToggleInput"> Isıl Harita (PRB'ye göre)</label>
+      <label><input type="checkbox" id="fixedNEsToggle"> Aktif Sahalar (Fixed NE's)</label>
+      <label><input type="checkbox" id="disconnectedNEsToggle"> İnaktif Sahalar (Disconnected NE's)</label>
+    </div>
+    <div class="toggle-legend"> 
+      <div class="legend-item"><div class="legend-dot dot-active"></div><span>Aktif</span></div>
+      <div class="legend-item"><div class="legend-dot dot-inactive"></div><span>İnaktif</span></div>
+    </div>
+  </div>
+
+  <div id="searchResults">
+    <div class="results-header">📊 Arama Sonuçları <span class="close-btn" onclick="AppState.closeSearchResults()">×</span></div>
+    <div class="results-table-container"><table class="results-table" id="resultsTable"></table></div>
+  </div>
+
+  <div id="detailPanel">
+    <div class="detail-header">📍 Detaylar <span class="close-btn" onclick="AppState.closeDetailPanel()">×</span></div>
+    <div class="detail-body"><div id="detailContent"></div></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.0/leaflet.markercluster.min.js"></script>
+
+  <script>
+    // ==================== CONFIGURATION ====================
+    const CONFIG = {
+      MAP_CENTER: [39.0, 35.0],
+      MAP_ZOOM: 6.5,
+      MIN_ZOOM: 6.5,
+      MAX_ZOOM: 16,
+      SEARCH_DEBOUNCE: 300,
+      HEATMAP_RADIUS: 30,
+      HEATMAP_BLUR: 12,
+      WAVE_SPEED: 50,
+      WAVE_INCREMENT: 600,
+      MAX_WAVE_RADIUS: 17000,
+      DETAIL_ZOOM: 14,
+      MAX_SEARCH_RESULTS: 20,
+      CLUSTER_MAX_RADIUS: 80,
+      VIRTUAL_SCROLL_ITEMS: 30,
+      VIEWPORT_BUFFER: 0.2
+    };
+
+    const COLORS = {
+      ACTIVE: '#4caf50',
+      INACTIVE: '#f44336',
+      PRIMARY: '#2196F3'
+    };
+
+    // ==================== DATA ====================
+    const DATA = {
+      sites: [
+        {cab_name:"GL34_IST_001",enabled_date:"2023-10-19 05:00:00",Lat_Site:41.0156,Lon_Site:28.9789},
+        {cab_name:"GL34_IST_002",enabled_date:null,Lat_Site:41.0089,Lon_Site:28.9756},
+        {cab_name:"GL34_IST_003",enabled_date:"2023-09-28 20:00:00",Lat_Site:41.0234,Lon_Site:28.9823},
+        {cab_name:"GL34_IST_004",enabled_date:"2023-11-01 10:15:30",Lat_Site:41.0145,Lon_Site:28.9812},
+        {cab_name:"GL34_IST_006",enabled_date:"2023-10-19 02:00:41",Lat_Site:40.9876,Lon_Site:29.3456},
+        {cab_name:"GL34_IST_007",enabled_date:"2023-10-19 02:10:41",Lat_Site:40.9934,Lon_Site:29.3512},
+        {cab_name:"GL34_IST_008",enabled_date:null,Lat_Site:40.9823,Lon_Site:29.3389},
+        {cab_name:"GL34_IST_009",enabled_date:"2023-10-19 02:30:41",Lat_Site:40.9945,Lon_Site:29.3234},
+        {cab_name:"GL34_IST_010",enabled_date:"2023-10-19 02:40:41",Lat_Site:40.9789,Lon_Site:29.3645},
+      ],
+      cells: [
+        {id:1,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_001",cellId:8001,cellName:"IST001_LTE_01",reason:"LTE_High_Utilized_Cell(Youtube)",date:"2023-07-12 18:00:26",lMax:174,prb:87,thrg:"60 Minutes",lat:41.0156,lng:28.9789},
+        {id:2,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_001",cellId:8002,cellName:"IST001_LTE_02",reason:"LTE_High_Utilized_Cell(TikTok)",date:"2023-07-12 18:05:26",lMax:168,prb:34,thrg:"60 Minutes",lat:41.0156,lng:28.9789},
+        {id:3,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_001",cellId:8003,cellName:"IST001_LTE_03",reason:"LTE_High_Utilized_Cell(Instagram)",date:"2023-07-12 18:10:26",lMax:181,prb:72,thrg:"60 Minutes",lat:41.0156,lng:28.9789},
+        {id:4,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_002",cellId:8004,cellName:"IST002_LTE_04",reason:"LTE_High_Utilized_Cell(YouTube)",date:"2023-07-12 18:15:26",lMax:190,prb:56,thrg:"60 Minutes",lat:41.0089,lng:28.9756},
+        {id:5,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_003",cellId:8005,cellName:"IST003_LTE_05",reason:"LTE_High_Utilized_Cell(Video)",date:"2023-07-12 18:20:26",lMax:160,prb:43,thrg:"30 Minutes",lat:41.0234,lng:28.9823},
+        {id:6,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_004",cellId:8006,cellName:"IST004_LTE_01",reason:"LTE_High_Utilized_Cell(Streaming)",date:"2023-10-19 02:00:41",lMax:79,prb:91,thrg:"60 Minutes",lat:41.0145,lng:28.9812},
+        {id:7,oss_id:1,disaster_event_id:552293,cabName:"GL34_IST_005",cellId:8007,cellName:"IST005_LTE_02",reason:"LTE_High_Utilized_Cell(Gaming)",date:"2023-10-19 02:10:41",lMax:88,prb:23,thrg:"60 Minutes",lat:41.0198,lng:28.9678},
+      ],
+      earthquakes: [
+        {id:1079,eventId:523046,eventDate:"2025-04-23 12:49:10",magnitude:3.20,longitude:28.2444,latitude:40.86,location:"MARMARA DENIZI - SILIVRI",depth:6.92},
+        {id:1080,eventId:523051,eventDate:"2025-04-23 12:51:19",magnitude:5.90,longitude:28.3267,latitude:40.8369,location:"MARMARA DENIZI - BUYUKCEKMECE",depth:6.99},
+        {id:1081,eventId:526075,eventDate:"2025-05-13 22:51:16",magnitude:4.50,longitude:27.0817,latitude:35.3289,location:"AKDENIZ - DATCA",depth:20.41},
+        {id:1083,eventId:526861,eventDate:"2025-05-22 03:19:36",magnitude:7.60,longitude:25.9536,latitude:35.8053,location:"EGE DENIZI",depth:17.7},
+        {id:1105,eventId:552293,eventDate:"2025-10-27 22:48:29",magnitude:6.10,longitude:28.2308,latitude:39.1839,location:"SINDIRGI (BALIKESIR)",depth:5.99}
+      ]
+    };
+
+    // ==================== DOM CACHE ====================
+    const DOM = {
+      searchInput: document.getElementById('searchInput'),
+      heatToggle: document.getElementById('heatToggleInput'),
+      fixedNEsToggle: document.getElementById('fixedNEsToggle'),
+      disconnectedNEsToggle: document.getElementById('disconnectedNEsToggle'),
+      mapLayers: document.querySelectorAll('input[name="mapLayer"]'),
+      detailPanel: document.getElementById('detailPanel'),
+      searchResults: document.getElementById('searchResults'),
+      detailContent: document.getElementById('detailContent'),
+      resultsTable: document.getElementById('resultsTable')
+    };
+
+    // ==================== SPATIAL INDEX ====================
+    class SpatialGrid {
+      constructor(gridSize = 0.1) {
+        this.grid = new Map();
+        this.gridSize = gridSize;
+      }
+
+      getKey(lat, lng) {
+        return `${Math.floor(lat / this.gridSize)},${Math.floor(lng / this.gridSize)}`;
+      }
+
+      add(item) {
+        const key = this.getKey(item.lat, item.lng);
+        if (!this.grid.has(key)) this.grid.set(key, []);
+        this.grid.get(key).push(item);
+      }
+
+      getInBounds(bounds) {
+        const items = [];
+        const minLat = Math.floor(bounds.getSouth() / this.gridSize);
+        const maxLat = Math.floor(bounds.getNorth() / this.gridSize);
+        const minLng = Math.floor(bounds.getWest() / this.gridSize);
+        const maxLng = Math.floor(bounds.getEast() / this.gridSize);
+
+        for (let lat = minLat; lat <= maxLat; lat++) {
+          for (let lng = minLng; lng <= maxLng; lng++) {
+            const key = `${lat},${lng}`;
+            if (this.grid.has(key)) {
+              items.push(...this.grid.get(key));
+            }
+          }
+        }
+        return items;
+      }
+    }
+
+    // ==================== VIRTUAL SCROLL FOR DETAIL PANEL ====================
+    class VirtualScroller {
+      constructor(container, items, itemHeight = 40) {
+        this.container = container;
+        this.items = items;
+        this.itemHeight = itemHeight;
+        this.visibleCount = Math.ceil(window.innerHeight / itemHeight);
+        this.scrollOffset = 0;
+      }
+
+      renderVisible() {
+        const scrollTop = this.container.parentElement.scrollTop || 0;
+        const startIndex = Math.floor(scrollTop / this.itemHeight);
+        const endIndex = startIndex + this.visibleCount;
+
+        let html = '';
+        for (let i = startIndex; i < Math.min(endIndex, this.items.length); i++) {
+          html += this.renderItem(this.items[i]);
+        }
+
+        this.container.innerHTML = `
+          <div style="height: ${startIndex * this.itemHeight}px;"></div>
+          ${html}
+          <div style="height: ${Math.max(0, (this.items.length - endIndex) * this.itemHeight)}px;"></div>
+        `;
+      }
+
+      renderItem(item) {
+        return `<div style="height: ${this.itemHeight}px; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+          ${item.html}
+        </div>`;
+      }
+    }
+
+    // ==================== UTILITIES ====================
+    const Utils = {
+      isValidCoord(lat, lng) {
+        return isFinite(lat) && isFinite(lng);
+      },
+      getPRBClass(prb) {
+        return prb >= 80 ? 'prb-high' : prb >= 50 ? 'prb-medium' : 'prb-low';
+      },
+      escapeHtml(text) {
+        const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+        return String(text).replace(/[&<>"']/g, m => map[m]);
+      },
+      debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func(...args), wait);
+        };
+      },
+      throttle(func, limit) {
+        let inThrottle;
+        return function(...args) {
+          if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+          }
+        };
+      },
+      getEarthquakeColor(magnitude) {
+        if (magnitude < 4) return 'green';
+        if (magnitude < 5) return 'blue';
+        if (magnitude < 6) return 'orange';
+        if (magnitude < 7) return 'red';
+        return 'purple';
+      },
+      getMarkerRadius(zoom) {
+        const radiusMap = { 6:4, 8:5, 10:7, 12:10, 14:12, 16:15 };
+        for (let z = 16; z >= 6; z--) {
+          if (zoom >= z && radiusMap[z]) return radiusMap[z];
+        }
+        return 4;
+      }
+    };
+
+    // ==================== APP STATE ====================
+    const AppState = {
+      map: null,
+      layers: {
+        fixedNEs: L.markerClusterGroup({ maxClusterRadius: CONFIG.CLUSTER_MAX_RADIUS, disableClusteringAtZoom: 15, chunkedLoading: true }),
+        disconnectedNEs: L.markerClusterGroup({ maxClusterRadius: CONFIG.CLUSTER_MAX_RADIUS, disableClusteringAtZoom: 15, chunkedLoading: true }),
+        cellsClusters: L.markerClusterGroup({ maxClusterRadius: CONFIG.CLUSTER_MAX_RADIUS, disableClusteringAtZoom: 15, chunkedLoading: true }),
+        earthquakes: L.featureGroup(),
+        heatmap: null,
+      },
+      spatialGrid: new SpatialGrid(0.1),
+      utilizedCellsData: [],
+      waveIntervals: [],
+      currentZoom: CONFIG.MAP_ZOOM,
+      virtualScroller: null,
+
+      closeDetailPanel() {
+        DOM.detailPanel.classList.remove('show');
+      },
+      closeSearchResults() {
+        DOM.searchResults.classList.remove('show');
+      },
+      cleanup() {
+        this.waveIntervals.forEach(id => clearInterval(id));
+        this.waveIntervals = [];
+      }
+    };
+
+    // ==================== MAP INITIALIZATION ====================
+    function initMap() {
+      AppState.map = L.map('map', { 
+        center: CONFIG.MAP_CENTER, 
+        zoom: CONFIG.MAP_ZOOM, 
+        minZoom: CONFIG.MIN_ZOOM,
+        maxZoom: CONFIG.MAX_ZOOM,
+        preferCanvas: true,
+        zoomControl: true
+      });
+
+      const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: 'Selahattin AY'
+      });
+
+      const esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19,
+        attribution: 'Selahattin AY'
+      }).addTo(AppState.map);
+
+      AppState.map.on('zoom', () => {
+        AppState.currentZoom = AppState.map.getZoom();
+      });
+
+      DOM.mapLayers.forEach(input => {
+        input.addEventListener('change', e => {
+          if (e.target.value === 'osm') {
+            AppState.map.addLayer(osm);
+            AppState.map.removeLayer(esri);
+          } else {
+            AppState.map.addLayer(esri);
+            AppState.map.removeLayer(osm);
+          }
+        });
+      });
+    }
+
+    // ==================== SITE RENDERING ====================
+    function renderSites(sites) {
+      AppState.layers.fixedNEs.clearLayers();
+      AppState.layers.disconnectedNEs.clearLayers();
+      
+      const fixedMarkers = [];
+      const disconnectedMarkers = [];
+
+      sites.forEach(site => {
+        const { Lat_Site: lat, Lon_Site: lng, cab_name, enabled_date } = site;
+        if (!Utils.isValidCoord(+lat, +lng)) return;
+        
+        const isFixed = !!enabled_date;
+        const marker = L.circleMarker([+lat, +lng], {
+          radius: 5, 
+          color: '#fff', 
+          weight: 1, 
+          fillColor: isFixed ? COLORS.ACTIVE : COLORS.INACTIVE, 
+          fillOpacity: 0.9,
+          interactive: true, 
+          bubblingMouseEvents: false, 
+          pane: 'markerPane'
+        });
+
+        marker.on('click', () => renderSiteDetail(site));
+        marker.bindPopup(`<b>${cab_name}</b><br/>Durum: ${enabled_date ? '✓ Aktif' : '✗ İnaktif'}`);
+        
+        (isFixed ? fixedMarkers : disconnectedMarkers).push(marker);
+      });
+
+      if (fixedMarkers.length > 0) AppState.layers.fixedNEs.addLayers(fixedMarkers);
+      if (disconnectedMarkers.length > 0) AppState.layers.disconnectedNEs.addLayers(disconnectedMarkers);
+    }
+
+    // ==================== HEATMAP RENDERING (OPTIMIZED) ====================
+    function renderHeatmap(cells) {
+      if (!L.heatLayer) return;
+      
+      if (AppState.layers.heatmap) AppState.layers.heatmap.remove();
+      AppState.layers.cellsClusters.clearLayers();
+
+      AppState.utilizedCellsData = cells;
+      AppState.spatialGrid = new SpatialGrid(0.1);
+      cells.forEach(cell => AppState.spatialGrid.add(cell));
+
+      const cellsByLocation = new Map();
+      cells.forEach(cell => {
+        if (!Utils.isValidCoord(+cell.lat, +cell.lng)) return;
+        const key = `${cell.lat},${cell.lng}`;
+        if (!cellsByLocation.has(key)) {
+          cellsByLocation.set(key, []);
+        }
+        cellsByLocation.get(key).push(cell);
+      });
+
+      // Heatmap calculation - fast
+      const heatData = Array.from(cellsByLocation.entries()).map(([key, cellsAtLoc]) => {
+        const [lat, lng] = key.split(',').map(Number);
+        const avgPrb = cellsAtLoc.reduce((sum, c) => sum + c.prb, 0) / cellsAtLoc.length;
+        const boostFactor = 1 + (cellsAtLoc.length - 1) * 0.15;
+        return [lat, lng, Math.min(100, avgPrb * boostFactor) / 100];
+      });
+
+      if (heatData.length > 0) {
+        AppState.layers.heatmap = L.heatLayer(heatData, {
+          radius: CONFIG.HEATMAP_RADIUS,
+          blur: CONFIG.HEATMAP_BLUR,
+          maxZoom: 11,
+          max: 1,
+          minOpacity: 0.5,
+          gradient: { 0.0: '#006400', 0.2: '#00FF00', 0.35: '#FFFF66', 0.5: '#FFD700', 0.65: '#FF8C00', 0.8: '#FF7F50', 0.9: '#FF0000', 1.0: '#8B0000' }
+        });
+      }
+
+      // Cluster markers
+      const clusteredMarkers = [];
+      cellsByLocation.forEach((cellsAtLoc, key) => {
+        const [lat, lng] = key.split(',').map(Number);
+        const radiusSize = Utils.getMarkerRadius(AppState.currentZoom);
+        
+        const marker = L.circleMarker([+lat, +lng], {
+          radius: radiusSize,
+          color: COLORS.PRIMARY,
+          weight: 1,
+          fillColor: '#fff',
+          fillOpacity: 0.4,
+          interactive: true,
+          pane: 'markerPane'
+        });
+
+        if (cellsAtLoc.length > 1) {
+          marker.on('click', () => renderMultipleCellsList(cellsAtLoc));
+          marker.bindPopup(`<b>${cellsAtLoc.length} Utilized Cells</b>`);
+        } else {
+          marker.on('click', () => renderCellDetail(cellsAtLoc[0]));
+          marker.bindPopup(`<b>${cellsAtLoc[0].cellName}</b><br/>PRB: <strong>${cellsAtLoc[0].prb}%</strong>`);
+        }
+
+        clusteredMarkers.push(marker);
+      });
+
+      if (clusteredMarkers.length > 0) {
+        AppState.layers.cellsClusters.addLayers(clusteredMarkers);
+      }
+
+      AppState.map.on('zoomend', updateMarkerRadius);
+    }
+
+    function updateMarkerRadius() {
+      const newRadius = Utils.getMarkerRadius(AppState.map.getZoom());
+      AppState.layers.cellsClusters.eachLayer(layer => {
+        if (layer.setRadius) layer.setRadius(newRadius);
+      });
+    }
+
+    // ==================== DETAIL RENDERING (VIRTUAL SCROLL) ====================
+    function renderSiteDetail(site) {
+      const relatedCells = AppState.utilizedCellsData.filter(c => c.cabName === site.cab_name);
+      
+      let items = [
+        { html: `<table style="width: 100%; font-family: 'Segoe UI', Roboto, Arial; font-size: 12px;"><tr><td style="font-weight: 600; color: #1e293b;">🏢 Saha Adı:</td><td style="color: #334155;"><strong>${site.cab_name}</strong></td></tr></table>` },
+        { html: `<table style="width: 100%; font-family: 'Segoe UI', Roboto, Arial; font-size: 12px;"><tr><td style="font-weight: 600; color: #1e293b;">📊 Durum:</td><td>${site.enabled_date ? '<span style="color: #4caf50; font-weight: 600;">✓ Aktif</span>' : '<span style="color: #f44336; font-weight: 600;">✗ İnaktif</span>'}</td></tr></table>` },
+        { html: `<table style="width: 100%; font-family: 'Segoe UI', Roboto, Arial; font-size: 12px;"><tr><td style="font-weight: 600; color: #1e293b;">📅 Tarih:</td><td style="color: #334155;">${site.enabled_date || 'Henüz etkinleştirilmedi'}</td></tr></table>` },
+        { html: `<table style="width: 100%; font-family: 'Segoe UI', Roboto, Arial; font-size: 12px;"><tr><td style="font-weight: 600; color: #1e293b;">📍 Lat/Lng:</td><td style="color: #334155;">${(+site.Lat_Site).toFixed(6)}, ${(+site.Lon_Site).toFixed(6)}</td></tr></table>` }
+      ];
+
+      if (relatedCells.length > 0) {
+        items.push({ html: `<div style="border-top: 2px solid #1e293b; padding-top: 12px; font-weight: 600; color: #1e293b; margin: 12px 0; font-family: 'Segoe UI', Roboto, Arial; font-size: 12px;">📱 Bağlı Hücreler (${relatedCells.length})</div>` });
+        relatedCells.forEach(cell => {
+          items.push({ html: `
+            <div style="cursor: pointer; background: #f1f5f9; padding: 10px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #2196F3; font-family: 'Segoe UI', Roboto, Arial;" onclick="window.selectCell(${cell.id})">
+              <div style="font-weight: 600; color: #1e293b; font-size: 12px;">${cell.cellName} <span class="${Utils.getPRBClass(cell.prb)}" style="float: right; font-size: 11px;">${cell.prb}%</span></div>
+              <div style="color: #64748b; font-size: 11px; margin-top: 4px;">${cell.reason}</div>
+            </div>
+          ` });
+        });
+      }
+
+      DOM.detailContent.innerHTML = items.map(i => i.html).join('');
+      DOM.detailPanel.classList.add('show');
+      DOM.searchResults.classList.remove('show');
+    }
+
+    function renderCellDetail(cell) {
+      DOM.detailContent.innerHTML = `
+        <table class="detail-table">
+          <tr><td>📱 Cell Adı:</td><td>${cell.cellName}</td></tr>
+          <tr><td>🏢 Saha Adı:</td><td>${cell.cabName}</td></tr>
+          <tr><td>🆔 Cell ID:</td><td>${cell.cellId}</td></tr>
+          <tr><td>⚠️ Sebep:</td><td>${cell.reason}</td></tr>
+          <tr><td>📅 Tarih:</td><td>${cell.date}</td></tr>
+          <tr><td>📊 PRB:</td><td><span class="${Utils.getPRBClass(cell.prb)}">${cell.prb}%</span></td></tr>
+          <tr><td>📈 lMax:</td><td>${cell.lMax}</td></tr>
+          <tr><td>📍 Konum:</td><td>${(+cell.lat).toFixed(4)}, ${(+cell.lng).toFixed(4)}</td></tr>
+        </table>
+      `;
+      DOM.detailPanel.classList.add('show');
+      DOM.searchResults.classList.remove('show');
+    }
+
+    function renderMultipleCellsList(cells) {
+      let html = `<div style="border-bottom: 2px solid #1e293b; padding-bottom: 10px; font-weight: 600; color: #1e293b; margin-bottom: 10px; font-family: 'Segoe UI', Roboto, Arial; font-size: 12px;">📍 Bu noktadaki hücreler (${cells.length})</div>`;
+      cells.forEach(cell => {
+        html += `<div style="cursor: pointer; background: #f1f5f9; padding: 10px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #2196F3; font-family: 'Segoe UI', Roboto, Arial;" onclick="window.selectCell(${cell.id})">
+          <div style="font-weight: 600; color: #1e293b; font-size: 12px;">${cell.cellName} <span class="${Utils.getPRBClass(cell.prb)}" style="float: right; font-size: 11px;">${cell.prb}%</span></div>
+          <div style="color: #64748b; font-size: 11px; margin-top: 4px;">${cell.cabName}</div>
+        </div>`;
+      });
+      DOM.detailContent.innerHTML = html;
+      DOM.detailPanel.classList.add('show');
+      DOM.searchResults.classList.remove('show');
+    }
+
+    // ==================== SEARCH ====================
+    function performSearch(query) {
+      if (!query.trim()) {
+        DOM.searchResults.classList.remove('show');
+        return;
+      }
+
+      const lowerQuery = query.toLowerCase();
+      const cellResults = AppState.utilizedCellsData.filter(cell => 
+        cell.cellName.toLowerCase().includes(lowerQuery) ||
+        cell.cabName.toLowerCase().includes(lowerQuery) ||
+        cell.reason.toLowerCase().includes(lowerQuery)
+      );
+
+      const siteResults = DATA.sites.filter(site =>
+        site.cab_name.toLowerCase().includes(lowerQuery)
+      ).map(site => ({
+        id: `site_${site.cab_name}`,
+        cellName: site.cab_name,
+        cabName: site.cab_name,
+        prb: site.enabled_date ? 0 : 100,
+        isSite: true,
+        enabled_date: site.enabled_date
+      }));
+
+      const allResults = [...cellResults, ...siteResults].slice(0, CONFIG.MAX_SEARCH_RESULTS);
+
+      DOM.resultsTable.innerHTML = allResults.length === 0 
+        ? '<tr><td colspan="2" class="no-results">Sonuç bulunamadı</td></tr>'
+        : allResults.map(result => {
+            const status = result.isSite 
+              ? (result.enabled_date ? '✓ Aktif' : '✗ İnaktif')
+              : `PRB: <span class="${Utils.getPRBClass(result.prb)}">${result.prb}%</span>`;
+            return `<tr class="clickable" onclick="window.selectResult('${result.id}')"><td>${Utils.escapeHtml(result.cellName)}</td><td>${Utils.escapeHtml(result.cabName)} • ${status}</td></tr>`;
+          }).join('');
+      
+      DOM.searchResults.classList.add('show');
+    }
+
+    // ==================== EARTHQUAKES ====================
+    function renderEarthquakes(earthquakes) {
+      AppState.layers.earthquakes.clearLayers();
+      
+      earthquakes.forEach(eq => {
+        const { latitude, longitude, magnitude, location, eventDate } = eq;
+        if (!Utils.isValidCoord(+latitude, +longitude)) return;
+
+        const color = Utils.getEarthquakeColor(magnitude);
+        const marker = L.circleMarker([+latitude, +longitude], {
+          radius: 3, color, weight: 1, fillColor: color, fillOpacity: 0.5,
+          interactive: true, pane: 'markerPane'
+        }).bindPopup(`<b>🌍 Deprem</b><br/><strong>${location}</strong><br/>Şiddet: <strong>${magnitude}</strong><br/>Tarih: ${eventDate}<br/>Konum: ${(+latitude).toFixed(4)}, ${(+longitude).toFixed(4)}`);
+
+        AppState.layers.earthquakes.addLayer(marker);
+        createWave(+latitude, +longitude, color);
+      });
+
+      if (earthquakes.length > 0) {
+        AppState.map.addLayer(AppState.layers.earthquakes);
+      }
+    }
+
+    function createWave(lat, lng, waveColor) {
+      let currentRadius = 0;
+      const circle = L.circle([lat, lng], {
+        color: "white", weight: 1, fillColor: waveColor, fillOpacity: 0.3,
+        radius: currentRadius, interactive: false, pane: 'markerPane'
+      }).addTo(AppState.map);
+
+      const waveInterval = setInterval(() => {
+        currentRadius += CONFIG.WAVE_INCREMENT;
+        if (currentRadius > CONFIG.MAX_WAVE_RADIUS) currentRadius = 0;
+        circle.setRadius(currentRadius);
+      }, CONFIG.WAVE_SPEED);
+
+      AppState.waveIntervals.push(waveInterval);
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    DOM.searchInput.addEventListener('input', Utils.debounce(e => performSearch(e.target.value), CONFIG.SEARCH_DEBOUNCE));
+
+    DOM.heatToggle.addEventListener('change', e => {
+      if (e.target.checked && AppState.layers.heatmap) {
+        AppState.layers.heatmap.addTo(AppState.map);
+        AppState.map.addLayer(AppState.layers.cellsClusters);
+      } else if (!e.target.checked && AppState.layers.heatmap) {
+        AppState.map.removeLayer(AppState.layers.heatmap);
+        AppState.map.removeLayer(AppState.layers.cellsClusters);
+      }
+    });
+
+    DOM.fixedNEsToggle.addEventListener('change', e => {
+      e.target.checked ? AppState.map.addLayer(AppState.layers.fixedNEs) : AppState.map.removeLayer(AppState.layers.fixedNEs);
+    });
+
+    DOM.disconnectedNEsToggle.addEventListener('change', e => {
+      e.target.checked ? AppState.map.addLayer(AppState.layers.disconnectedNEs) : AppState.map.removeLayer(AppState.layers.disconnectedNEs);
+    });
+
+    // ==================== GLOBAL FUNCTIONS ====================
+    window.selectCell = function(cellId) {
+      const cell = AppState.utilizedCellsData.find(c => c.id === cellId);
+      if (cell) {
+        AppState.map.setView([+cell.lat, +cell.lng], CONFIG.DETAIL_ZOOM);
+        renderCellDetail(cell);
+      }
+    };
+
+    window.selectResult = function(resultId) {
+      if (resultId.startsWith('site_')) {
+        const siteName = resultId.replace('site_', '');
+        const site = DATA.sites.find(s => s.cab_name === siteName);
+        if (site) {
+          AppState.map.setView([+site.Lat_Site, +site.Lon_Site], CONFIG.DETAIL_ZOOM);
+          renderSiteDetail(site);
+        }
+      } else {
+        window.selectCell(parseInt(resultId));
+      }
+    };
+
+    // ==================== INITIALIZATION ====================
+    initMap();
+    renderSites(DATA.sites);
+    renderHeatmap(DATA.cells);
+    renderEarthquakes(DATA.earthquakes);
+  </script>
+</body>
+</html>
